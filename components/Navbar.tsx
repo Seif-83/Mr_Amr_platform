@@ -44,7 +44,7 @@ const Navbar: React.FC = () => {
             {isStudentLoggedIn ? (
               <div className="flex items-center gap-3">
                 <a
-                  href="https://ipn.eg/S/safaaesmail1980/instapay/9fQhwu"
+                  href="https://ipn.eg/S/amrmohsenhassanaly/instapay/21x3Xu"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-full font-bold text-sm hover:shadow-lg hover:shadow-green-500/30 transition-all flex items-center gap-2"
@@ -161,7 +161,7 @@ const Navbar: React.FC = () => {
                       </select>
                     </div>
                     <a
-                      href="https://ipn.eg/S/safaaesmail1980/instapay/9fQhwu"
+                      href="https://ipn.eg/S/amrmohsenhassanaly/instapay/21x3Xu"
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={() => setIsMenuOpen(false)}

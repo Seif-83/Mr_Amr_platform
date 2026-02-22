@@ -19,42 +19,50 @@ import ErrorBoundary from './components/ErrorBoundary';
 
 const MathBackground: React.FC = () => {
   return (
-    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden science-grid">
-      {/* Pi Symbol */}
-      <div className="absolute top-[10%] left-[5%] animate-science-float text-sky-400/20">
-        <svg width="180" height="180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5">
-          <path d="M18 4H6" />
-          <path d="M10 4s0 4 0 16" />
-          <path d="M14 4s0 4 0 16" />
-          <path d="M18 4h-2.5c-1.5 0-2.5 1-2.5 2.5V20" />
-        </svg>
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-slate-50 blueprint-grid">
+      {/* Decorative Radial Gradients */}
+      <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-sky-400/10 blur-[120px] rounded-full"></div>
+      <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-teal-400/10 blur-[120px] rounded-full"></div>
+
+      {/* Animated Glassmorphic Symbols */}
+      <div className="absolute top-[15%] left-[10%] animate-science-float">
+        <div className="math-symbol-glass text-sky-500/40 shadow-xl">
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M18 4H6" />
+            <path d="M10 4s0 4 0 16" />
+            <path d="M14 4s0 4 0 16" />
+            <path d="M18 4h-2.5c-1.5 0-2.5 1-2.5 2.5V20" />
+          </svg>
+        </div>
       </div>
 
-      {/* Infinity Symbol */}
-      <div className="absolute bottom-[10%] right-[8%] animate-science-sway text-teal-400/20" style={{ animationDelay: '2s' }}>
-        <svg width="140" height="140" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5">
-          <path d="M12 12c-2.5-4-6.5-4-9 0s2.5 8 9 0c2.5 4 6.5 4 9 0s-2.5-8-9 0z" />
-        </svg>
+      <div className="absolute bottom-[20%] right-[15%] animate-science-sway" style={{ animationDelay: '2s' }}>
+        <div className="math-symbol-glass text-teal-500/40 shadow-xl">
+          <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M12 12c-2.5-4-6.5-4-9 0s2.5 8 9 0c2.5 4 6.5 4 9 0s-2.5-8-9 0z" />
+          </svg>
+        </div>
       </div>
 
-      {/* Summation / Sigma */}
-      <div className="absolute top-[40%] right-[12%] animate-science-float text-sky-500/10" style={{ animationDelay: '4s' }}>
-        <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-          <path d="M18 4H6l6 8-6 8h12" />
-        </svg>
+      <div className="absolute top-[45%] right-[20%] animate-science-float" style={{ animationDelay: '4s' }}>
+        <div className="math-symbol-glass text-sky-600/30 shadow-xl">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M18 4H6l6 8-6 8h12" />
+          </svg>
+        </div>
       </div>
 
-      {/* Square Root */}
-      <div className="absolute bottom-[40%] left-[10%] animate-science-pulse text-teal-500/20">
-        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5">
-          <path d="M18 4h-10l-2 15-3-5" />
-        </svg>
+      <div className="absolute bottom-[35%] left-[25%] animate-science-pulse">
+        <div className="math-symbol-glass text-teal-600/30 shadow-sm">
+          <svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M18 4h-10l-2 15-3-5" />
+          </svg>
+        </div>
       </div>
 
-      {/* Geometric Shapes */}
-      <div className="absolute top-[20%] right-[40%] w-4 h-4 border-2 border-sky-300 animate-science-pulse rotate-45"></div>
-      <div className="absolute top-[25%] right-[42%] w-3 h-3 bg-teal-300 rounded-full animate-science-pulse" style={{ animationDelay: '1s' }}></div>
-      <div className="absolute bottom-[30%] left-[45%] w-5 h-5 border-2 border-sky-200 animate-science-pulse" style={{ animationDelay: '2s' }}></div>
+      {/* Smaller dots/shapes for depth */}
+      <div className="absolute top-[30%] left-[40%] w-2 h-2 bg-sky-300/40 rounded-full animate-ping"></div>
+      <div className="absolute bottom-[40%] right-[35%] w-3 h-3 border border-teal-300/40 rotate-45 animate-pulse"></div>
     </div>
   );
 };

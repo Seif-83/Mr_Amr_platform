@@ -8,18 +8,23 @@ const Hero: React.FC = () => {
       <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[40rem] h-[40rem] bg-sky-100 rounded-full blur-[100px] opacity-40"></div>
       <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-[30rem] h-[30rem] bg-teal-100 rounded-full blur-[100px] opacity-40"></div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="lg:grid lg:grid-cols-12 lg:gap-16 items-center">
-          <div className="text-right lg:col-span-7">
-            <h1 className="text-5xl tracking-tight font-black text-gray-900 sm:text-6xl md:text-7xl">
-              <span className="block mb-2">تعلم الرياضيات بمتعة مع الأستاذ</span>
-              <span className="block text-sky-600">عمرو محسن</span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 relative">
+        <div className="lg:grid lg:grid-cols-2 lg:gap-12 items-center">
+          <div className="text-right lg:text-right">
+            <h1 className="text-5xl lg:text-7xl font-black text-gray-900 leading-tight mb-8">
+              <span className="block mb-4 text-gray-800">تعلم الرياضيات بمتعة مع</span>
+              <span className="block science-gradient bg-clip-text text-transparent">الأستاذ عمرو محسن</span>
             </h1>
-            <p className="mt-8 text-xl text-gray-600 leading-relaxed max-w-2xl lg:ml-0 lg:mr-auto">
-              منصة تعليمية متكاملة لطلاب المرحلة الإعدادية. شروحات مبسطة، فيديوهات تفاعلية، ومذكرات شاملة لكل درس.            </p>
-            <div className="mt-12 flex flex-wrap gap-6 justify-center">
-              <a href="https://wa.me/201211143632" className="px-12 py-5 border-2 border-sky-100 text-xl font-bold rounded-2xl text-sky-700 bg-white/50 backdrop-blur-sm hover:bg-sky-50 transition-all">
-                تواصل معنا
+            <p className="mt-8 text-2xl text-gray-600 leading-relaxed max-w-2xl lg:ml-0 lg:mr-auto font-medium">
+              نفتح لك أبواب التميز في مادة الرياضيات. شروحات مبسطة، تمارين تفاعلية، ومتابعة دقيقة لكل طالب.
+            </p>
+            <div className="mt-12 flex flex-wrap gap-6 justify-center lg:justify-start">
+              <a href="https://wa.me/201211143632" className="px-12 py-5 science-gradient text-white text-xl font-bold rounded-[2rem] shadow-2xl shadow-sky-500/40 hover:scale-105 transition-all flex items-center gap-3">
+                <span>تواصل معنا الآن</span>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+              </a>
+              <a href="#levels" className="px-12 py-5 bg-white text-sky-700 text-xl font-bold rounded-[2rem] border border-sky-100 hover:bg-sky-50 transition-all shadow-sm">
+                تصفح الدروس
               </a>
             </div>
           </div>
