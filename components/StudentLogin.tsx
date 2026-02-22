@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { useStudentStore } from '../useStudentStore';
 
 const StudentLogin: React.FC = () => {
-    const [step, setStep] = useState<1 | 2>(1);
+    const [step, setStep] = useState<1 | 2 | 3>(1);
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [level, setLevel] = useState('1st-prep');
+    const [generatedCode, setGeneratedCode] = useState('');
+    const [inputCode, setInputCode] = useState('');
     const [error, setError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
@@ -15,15 +17,13 @@ const StudentLogin: React.FC = () => {
 
     const handlePhoneSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!phone.trim()) {
-            setError('يرجى إدخال رقم الهاتف');
-            return;
-        }
-
-        // Validate phone number (Egyptian format)
         const phoneClean = phone.trim().replace(/\s/g, '');
-        if (phoneClean.length < 10) {
-            setError('يرجى إدخال رقم هاتف صحيح');
+
+        // Egyptian Phone Regex: 01 followed by 0,1,2,5 and then 8 digits
+        const egyptPhoneRegex = /^01[0125][0-9]{8}$/;
+
+        if (!egyptPhoneRegex.test(phoneClean)) {
+            setError('يرجى إدخال رقم هاتف مصري صحيح (11 رقم يبدأ بـ 01)');
             return;
         }
 
@@ -31,33 +31,46 @@ const StudentLogin: React.FC = () => {
         setError('');
 
         try {
-            console.log('StudentLogin: Calling loginByPhone for:', phoneClean);
             const student = await loginByPhone(phoneClean);
-            console.log('StudentLogin: loginByPhone returned:', student);
-
             if (student) {
+                // Success: Persistent login
                 sessionStorage.setItem('student_logged_in', 'true');
                 sessionStorage.setItem('student_name', student.name);
                 sessionStorage.setItem('student_phone', student.phone);
                 sessionStorage.setItem('student_level', student.level || '1st-prep');
                 sessionStorage.setItem('student_id', (student as any).id || '');
+
+                // SAVE FOR AUTO-LOGIN
+                localStorage.setItem('student_phone_persist', phoneClean);
+
                 navigate('/');
             } else {
-                console.log('StudentLogin: Moving to registration step');
                 setStep(2);
             }
         } catch (err) {
-            console.error('StudentLogin: Error during login:', err);
-            setError('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى أو التحقق من الإنترنت');
+            setError('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى');
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const handleRegisterSubmit = async (e: React.FormEvent) => {
+    const handleRegisterSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!name.trim()) {
-            setError('يرجى إدخال الاسم');
+        if (!name.trim() || name.trim().length < 3) {
+            setError('يرجى إدخال الاسم بالكامل (3 كلمات على الأقل)');
+            return;
+        }
+
+        // Generate 6 digit code
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        setGeneratedCode(code);
+        setStep(3);
+    };
+
+    const handleVerifyAndFinalize = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (inputCode !== generatedCode) {
+            setError('كود التحقق غير صحيح');
             return;
         }
 
@@ -66,12 +79,15 @@ const StudentLogin: React.FC = () => {
 
         try {
             const id = await registerStudent(name.trim(), phoneClean, level);
-            // Login after registration
             sessionStorage.setItem('student_logged_in', 'true');
             sessionStorage.setItem('student_name', name.trim());
             sessionStorage.setItem('student_phone', phoneClean);
             sessionStorage.setItem('student_level', level);
             if (id) sessionStorage.setItem('student_id', id);
+
+            // SAVE FOR AUTO-LOGIN
+            localStorage.setItem('student_phone_persist', phoneClean);
+
             navigate('/');
         } catch (err: any) {
             setError(err.message || 'حدث خطأ أثناء التسجيل');
@@ -101,9 +117,10 @@ const StudentLogin: React.FC = () => {
                                     type="tel"
                                     value={phone}
                                     onChange={(e) => { setPhone(e.target.value); setError(''); }}
-                                    placeholder="رقم الهاتف"
+                                    placeholder="01XXXXXXXXX"
                                     className="w-full p-5 bg-white border border-gray-200 rounded-2xl text-center text-lg font-bold focus:ring-4 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all shadow-sm"
                                     dir="ltr"
+                                    maxLength={11}
                                     autoFocus
                                 />
                             </div>
@@ -113,14 +130,14 @@ const StudentLogin: React.FC = () => {
                                 disabled={isSubmitting}
                                 className="w-full py-5 science-gradient text-white rounded-2xl font-bold text-xl hover:shadow-2xl transition-all transform active:scale-95 disabled:opacity-60"
                             >
-                                {isSubmitting ? 'جاري التحقق...' : 'التالي'}
+                                {isSubmitting ? 'جاري التحقق...' : 'دخول'}
                             </button>
                         </form>
                     </>
-                ) : (
+                ) : step === 2 ? (
                     <div className="animate-fade-in">
                         <h2 className="text-3xl font-bold text-gray-900 mb-2">حساب جديد</h2>
-                        <p className="text-gray-500 mb-10 text-lg">رقم الهاتف غير مسجل. يرجى إدخال البيانات للتسجيل.</p>
+                        <p className="text-gray-500 mb-10 text-lg">أهلاً بك! يرجى إكمال بياناتك</p>
 
                         <form onSubmit={handleRegisterSubmit} className="space-y-5">
                             <div>
@@ -128,14 +145,14 @@ const StudentLogin: React.FC = () => {
                                     type="text"
                                     value={name}
                                     onChange={(e) => { setName(e.target.value); setError(''); }}
-                                    placeholder="الاسم بالكامل بالعربي"
+                                    placeholder="الاسم الثلاثي بالعربي"
                                     className="w-full p-5 bg-white border border-gray-200 rounded-2xl text-center text-lg font-bold focus:ring-4 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all shadow-sm"
                                     autoFocus
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-right text-gray-700 font-bold mb-2 mr-2">المرحلة الدراسية:</label>
+                                <label className="block text-right text-gray-700 font-bold mb-2 mr-2 text-sm text-gray-500">اختر المرحلة الدراسية:</label>
                                 <div className="grid grid-cols-3 gap-2">
                                     {[
                                         { id: '1st-prep', label: '1 إعدادي' },
@@ -157,27 +174,54 @@ const StudentLogin: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-gray-50 p-4 rounded-xl text-gray-500 text-sm font-medium">
-                                رقم الهاتف: <span dir="ltr" className="font-bold text-gray-800">{phone}</span>
-                            </div>
-                            {error && <p className="text-red-500 font-bold animate-fade-in">{error}</p>}
-                            <div className="flex gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setStep(1)}
-                                    className="flex-shrink-0 w-16 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition-all"
-                                >
-                                    ←
-                                </button>
+                            {error && <p className="text-red-500 font-bold">{error}</p>}
+
+                            <button
+                                type="submit"
+                                className="w-full py-5 science-gradient text-white rounded-2xl font-bold text-xl hover:shadow-2xl transition-all transform active:scale-95"
+                            >
+                                تأكيد البيانات
+                            </button>
+                            <button type="button" onClick={() => setStep(1)} className="text-sky-600 font-bold text-sm">رجوع</button>
+                        </form>
+                    </div>
+                ) : (
+                    <div className="animate-fade-in">
+                        <h2 className="text-3xl font-bold text-gray-900 mb-2">خطوة التحقق</h2>
+                        <p className="text-gray-500 mb-6 text-lg">من فضلك اطلب كود التفعيل من المعلم</p>
+
+                        <div className="space-y-6">
+                            <a
+                                href={`https://wa.me/201211143632?text=${encodeURIComponent(`أهلاً يا مستر عمرو، أنا الطالب ${name}، أريد كود التفعيل لمنصة الرياضيات. رقم هاتفي هو: ${phone}. كود الطلب الخاص بي هو: ${generatedCode}`)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block w-full py-5 bg-green-500 text-white rounded-2xl font-bold text-lg hover:bg-green-600 transition-all flex items-center justify-center gap-2"
+                            >
+                                <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.319 1.592 5.448 0 9.886-4.438 9.889-9.886.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884 0 2.225.584 3.911 1.706 5.61l-.998 3.647 3.754-.985zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" /></svg>
+                                اطلب كود التفعيل
+                            </a>
+
+                            <form onSubmit={handleVerifyAndFinalize} className="space-y-4">
+                                <input
+                                    type="text"
+                                    value={inputCode}
+                                    onChange={(e) => { setInputCode(e.target.value); setError(''); }}
+                                    placeholder="أدخل كود التفعيل هنا"
+                                    maxLength={6}
+                                    className="w-full p-5 bg-white border border-gray-200 rounded-2xl text-center text-3xl tracking-[0.5em] font-black focus:ring-4 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all shadow-sm"
+                                    dir="ltr"
+                                />
+                                {error && <p className="text-red-500 font-bold">{error}</p>}
                                 <button
                                     type="submit"
-                                    disabled={isSubmitting}
-                                    className="flex-1 py-5 science-gradient text-white rounded-2xl font-bold text-xl hover:shadow-2xl transition-all transform active:scale-95 disabled:opacity-60"
+                                    disabled={isSubmitting || inputCode.length < 6}
+                                    className="w-full py-5 science-gradient text-white rounded-2xl font-bold text-xl hover:shadow-2xl transition-all transform active:scale-95 disabled:opacity-50"
                                 >
-                                    {isSubmitting ? 'جاري التسجيل...' : 'تسجيل حساب'}
+                                    {isSubmitting ? 'جاري التحقق...' : 'تفعيل الحساب والدخول'}
                                 </button>
-                            </div>
-                        </form>
+                                <button type="button" onClick={() => setStep(2)} className="text-gray-400 text-sm">تعديل البيانات</button>
+                            </form>
+                        </div>
                     </div>
                 )}
 

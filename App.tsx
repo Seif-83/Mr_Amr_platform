@@ -15,6 +15,7 @@ import StudentManagement from './components/StudentManagement';
 import { useContentStore } from './useContentStore';
 import { Lesson } from './types';
 import { useExamStore } from './useExamStore';
+import { useStudentStore } from './useStudentStore';
 import ErrorBoundary from './components/ErrorBoundary';
 
 const MathBackground: React.FC = () => {
@@ -76,12 +77,42 @@ const HomePage: React.FC = () => {
   // Always initialize exam store hooks to preserve hook order
   const { exams, isLoading: isExamsLoading } = useExamStore();
 
+  const { loginByPhone } = useStudentStore();
+
   useEffect(() => {
-    const loggedIn = sessionStorage.getItem('student_logged_in') === 'true';
-    const level = sessionStorage.getItem('student_level');
-    setIsStudentLoggedIn(loggedIn);
-    setStudentLevel(level);
-  }, []);
+    const init = async () => {
+      const loggedIn = sessionStorage.getItem('student_logged_in') === 'true';
+      const level = sessionStorage.getItem('student_level');
+
+      // AUTO LOGIN LOGIC
+      if (!loggedIn) {
+        const persistedPhone = localStorage.getItem('student_phone_persist');
+        if (persistedPhone) {
+          try {
+            const student = await loginByPhone(persistedPhone);
+            if (student) {
+              sessionStorage.setItem('student_logged_in', 'true');
+              sessionStorage.setItem('student_name', student.name);
+              sessionStorage.setItem('student_phone', student.phone);
+              sessionStorage.setItem('student_level', student.level || '1st-prep');
+              sessionStorage.setItem('student_id', (student as any).id || '');
+
+              setIsStudentLoggedIn(true);
+              setStudentLevel(student.level || '1st-prep');
+              return;
+            }
+          } catch (e) {
+            console.error('Auto-login failed', e);
+          }
+        }
+      }
+
+      setIsStudentLoggedIn(loggedIn);
+      setStudentLevel(level);
+    };
+
+    init();
+  }, [loginByPhone]);
 
   if (isLoading || isExamsLoading) {
     return (
