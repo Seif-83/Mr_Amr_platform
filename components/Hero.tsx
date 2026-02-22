@@ -30,17 +30,17 @@ const Hero: React.FC = () => {
               <img
                 className="w-full object-cover aspect-[4/5]"
                 src="sections/logo2.jpeg"
-                alt="Science Learning"
+                alt="Math Learning"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-sky-900/40 via-transparent to-transparent"></div>
             </div>
             {/* Floating Element */}
             <div className="absolute -bottom-6 -right-6 bg-white p-6 rounded-3xl shadow-2xl animate-science-float hidden md:block">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-teal-100 rounded-2xl flex items-center justify-center text-2xl">🧪</div>
+                <div className="w-12 h-12 bg-sky-100 rounded-2xl flex items-center justify-center text-2xl">📐</div>
                 <div>
-                  <div className="text-sm font-bold text-gray-900">فيديوهات تفاعلية</div>
-                  <div className="text-xs text-gray-500">فهم كل درس بسهولة</div>
+                  <div className="text-sm font-bold text-gray-900">دروس تفاعلية</div>
+                  <div className="text-xs text-gray-500">فهم عميق لكل مسألة</div>
                 </div>
               </div>
             </div>
