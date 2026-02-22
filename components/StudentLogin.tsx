@@ -31,23 +31,24 @@ const StudentLogin: React.FC = () => {
         setError('');
 
         try {
-            // Check if user exists
+            console.log('StudentLogin: Calling loginByPhone for:', phoneClean);
             const student = await loginByPhone(phoneClean);
+            console.log('StudentLogin: loginByPhone returned:', student);
 
             if (student) {
-                // Login immediately
                 sessionStorage.setItem('student_logged_in', 'true');
                 sessionStorage.setItem('student_name', student.name);
                 sessionStorage.setItem('student_phone', student.phone);
-                sessionStorage.setItem('student_level', student.level || '1st-prep'); // Default or stored
+                sessionStorage.setItem('student_level', student.level || '1st-prep');
                 sessionStorage.setItem('student_id', (student as any).id || '');
                 navigate('/');
             } else {
-                // Move to registration step
+                console.log('StudentLogin: Moving to registration step');
                 setStep(2);
             }
         } catch (err) {
-            setError('حدث خطأ، يرجى المحاولة مرة أخرى');
+            console.error('StudentLogin: Error during login:', err);
+            setError('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى أو التحقق من الإنترنت');
         } finally {
             setIsSubmitting(false);
         }
@@ -146,8 +147,8 @@ const StudentLogin: React.FC = () => {
                                             type="button"
                                             onClick={() => setLevel(l.id)}
                                             className={`p-3 rounded-xl border-2 font-bold transition-all ${level === l.id
-                                                    ? 'border-sky-500 bg-sky-50 text-sky-600'
-                                                    : 'border-gray-100 bg-white text-gray-500 hover:border-gray-200'
+                                                ? 'border-sky-500 bg-sky-50 text-sky-600'
+                                                : 'border-gray-100 bg-white text-gray-500 hover:border-gray-200'
                                                 }`}
                                         >
                                             {l.label}

@@ -44,20 +44,35 @@ export function useStudentStore() {
     }, []);
 
     const loginByPhone = useCallback(async (phone: string): Promise<Student | null> => {
+        console.log('useStudentStore: loginByPhone called for:', phone);
         const dbRef = ref(db, DB_PATH);
-        const snapshot = await get(dbRef);
 
-        if (snapshot.exists()) {
-            const data = snapshot.val();
-            const existingEntry = Object.entries(data).find(
-                ([_, student]: [string, any]) => student.phone === phone
+        try {
+            // Add a 5s timeout for the fetch
+            const fetchPromise = get(dbRef);
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Firebase connection timeout')), 5000)
             );
-            if (existingEntry) {
-                const [key, student] = existingEntry;
-                // Update last seen
-                await set(ref(db, `${DB_PATH}/${key}/lastSeen`), new Date().toISOString());
-                return { ...(student as any), id: key };
+
+            const snapshot = await Promise.race([fetchPromise, timeoutPromise]) as any;
+            console.log('useStudentStore: Received snapshot, exists:', snapshot.exists());
+
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                const existingEntry = Object.entries(data).find(
+                    ([_, student]: [string, any]) => student.phone === phone
+                );
+                if (existingEntry) {
+                    const [key, student] = existingEntry;
+                    console.log('useStudentStore: Student found, updating lastSeen');
+                    await set(ref(db, `${DB_PATH}/${key}/lastSeen`), new Date().toISOString());
+                    return { ...(student as any), id: key };
+                }
+                console.log('useStudentStore: Student not found in database');
             }
+        } catch (err) {
+            console.error('useStudentStore: Login error:', err);
+            throw err;
         }
         return null;
     }, []);

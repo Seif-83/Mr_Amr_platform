@@ -18,7 +18,7 @@ const Hero: React.FC = () => {
             <p className="mt-8 text-xl text-gray-600 leading-relaxed max-w-2xl lg:ml-0 lg:mr-auto">
               منصة تعليمية متكاملة لطلاب المرحلة الإعدادية. شروحات مبسطة، فيديوهات تفاعلية، ومذكرات شاملة لكل درس.            </p>
             <div className="mt-12 flex flex-wrap gap-6 justify-center">
-              <a href="https://wa.me/2012111664511" className="px-12 py-5 border-2 border-sky-100 text-xl font-bold rounded-2xl text-sky-700 bg-white/50 backdrop-blur-sm hover:bg-sky-50 transition-all">
+              <a href="https://wa.me/201211143632" className="px-12 py-5 border-2 border-sky-100 text-xl font-bold rounded-2xl text-sky-700 bg-white/50 backdrop-blur-sm hover:bg-sky-50 transition-all">
                 تواصل معنا
               </a>
             </div>
