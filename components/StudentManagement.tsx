@@ -5,7 +5,7 @@ import { useStudentStore, Student } from '../useStudentStore';
 
 const StudentManagement: React.FC = () => {
     const navigate = useNavigate();
-    const { students, requests, isLoading, removeStudent, removeRegistrationRequest } = useStudentStore();
+    const { students, isLoading, removeStudent } = useStudentStore();
     const [searchQuery, setSearchQuery] = useState('');
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const [successMsg, setSuccessMsg] = useState('');
