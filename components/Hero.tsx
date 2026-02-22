@@ -23,9 +23,6 @@ const Hero: React.FC = () => {
                 <span>تواصل معنا الآن</span>
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
               </a>
-              <a href="#levels" className="px-12 py-5 bg-white text-sky-700 text-xl font-bold rounded-[2rem] border border-sky-100 hover:bg-sky-50 transition-all shadow-sm">
-                تصفح الدروس
-              </a>
             </div>
           </div>
           <div className="mt-16 lg:mt-0 lg:col-span-5 relative">
