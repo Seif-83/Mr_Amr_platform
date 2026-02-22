@@ -2,14 +2,14 @@ import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBQkgrumfwI49Crnhi9y7wImYzNF3D87sg",
-    authDomain: "safaa-platform.firebaseapp.com",
-    databaseURL: "https://safaa-platform-default-rtdb.firebaseio.com",
-    projectId: "safaa-platform",
-    storageBucket: "safaa-platform.firebasestorage.app",
-    messagingSenderId: "393592099948",
-    appId: "1:393592099948:web:4bf8cf070d411b124a3449",
-    measurementId: "G-6WMNK2PL40"
+    apiKey: "AIzaSyCzXXpAq7oBQCg5U-XELtjPhX_Cz12wnz0",
+    authDomain: "amr-platform.firebaseapp.com",
+    databaseURL: "https://amr-platform-default-rtdb.firebaseio.com",
+    projectId: "amr-platform",
+    storageBucket: "amr-platform.firebasestorage.app",
+    messagingSenderId: "702351737173",
+    appId: "1:702351737173:web:2e87818977f7bfb78cefdc",
+    measurementId: "G-YBNZM0CP0V"
 };
 
 const app = initializeApp(firebaseConfig);

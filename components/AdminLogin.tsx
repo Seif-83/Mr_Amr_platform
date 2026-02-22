@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const ADMIN_PASSWORD = 'safaa-admin-2025';
+const ADMIN_PASSWORD = 'amr-admin-2025';
 
 const AdminLogin: React.FC = () => {
     const [password, setPassword] = useState('');

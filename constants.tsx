@@ -3,7 +3,7 @@ import { PrepData } from './types';
 
 export const VALID_ACCESS_CODES = [
   '123',
-  'safaa2025',
+  'amr-2025',
   'science-is-fun',
   'prep-master',
   'student-access-77'
