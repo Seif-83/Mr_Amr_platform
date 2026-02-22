@@ -12,13 +12,13 @@ const Hero: React.FC = () => {
         <div className="lg:grid lg:grid-cols-12 lg:gap-16 items-center">
           <div className="text-right lg:col-span-7">
             <h1 className="text-5xl tracking-tight font-black text-gray-900 sm:text-6xl md:text-7xl">
-              <span className="block mb-2">تعلم العلوم بمتعة مع الأستاذة</span>
-              <span className="block text-sky-600">صفاء إسماعيل</span>
+              <span className="block mb-2">تعلم الرياضيات بمتعة مع الأستاذ</span>
+              <span className="block text-sky-600">عمرو محسن</span>
             </h1>
             <p className="mt-8 text-xl text-gray-600 leading-relaxed max-w-2xl lg:ml-0 lg:mr-auto">
               منصة تعليمية متكاملة لطلاب المرحلة الإعدادية. شروحات مبسطة، فيديوهات تفاعلية، ومذكرات شاملة لكل درس.            </p>
             <div className="mt-12 flex flex-wrap gap-6 justify-center">
-              <a href="https://wa.me/201222966617" className="px-12 py-5 border-2 border-sky-100 text-xl font-bold rounded-2xl text-sky-700 bg-white/50 backdrop-blur-sm hover:bg-sky-50 transition-all">
+              <a href="https://wa.me/2012111664511" className="px-12 py-5 border-2 border-sky-100 text-xl font-bold rounded-2xl text-sky-700 bg-white/50 backdrop-blur-sm hover:bg-sky-50 transition-all">
                 تواصل معنا
               </a>
             </div>

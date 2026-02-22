@@ -17,46 +17,44 @@ import { Lesson } from './types';
 import { useExamStore } from './useExamStore';
 import ErrorBoundary from './components/ErrorBoundary';
 
-const ScienceBackground: React.FC = () => {
+const MathBackground: React.FC = () => {
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden science-grid">
-      {/* Atom */}
+      {/* Pi Symbol */}
       <div className="absolute top-[10%] left-[5%] animate-science-float text-sky-400/20">
         <svg width="180" height="180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5">
-          <circle cx="12" cy="12" r="2" fill="currentColor" />
-          <ellipse cx="12" cy="12" rx="10" ry="3" transform="rotate(45 12 12)" />
-          <ellipse cx="12" cy="12" rx="10" ry="3" transform="rotate(-45 12 12)" />
-          <ellipse cx="12" cy="12" rx="10" ry="3" transform="rotate(90 12 12)" />
+          <path d="M18 4H6" />
+          <path d="M10 4s0 4 0 16" />
+          <path d="M14 4s0 4 0 16" />
+          <path d="M18 4h-2.5c-1.5 0-2.5 1-2.5 2.5V20" />
         </svg>
       </div>
 
-      {/* Microscope */}
+      {/* Infinity Symbol */}
       <div className="absolute bottom-[10%] right-[8%] animate-science-sway text-teal-400/20" style={{ animationDelay: '2s' }}>
         <svg width="140" height="140" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5">
-          <path d="M6 18h8m-8-3h5m-2-3h2m-2-3h2m-6 9V4a2 2 0 012-2h1m2 0h1a2 2 0 012 2v1m-4 2l4 4m-4 0l4-4" />
-          <path d="M12 18l3 3m0-3l-3 3M9 22h9" />
+          <path d="M12 12c-2.5-4-6.5-4-9 0s2.5 8 9 0c2.5 4 6.5 4 9 0s-2.5-8-9 0z" />
         </svg>
       </div>
 
-      {/* DNA */}
+      {/* Summation / Sigma */}
       <div className="absolute top-[40%] right-[12%] animate-science-float text-sky-500/10" style={{ animationDelay: '4s' }}>
-        <svg width="80" height="160" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-          <path d="M8 3c4 4 4 14 0 18M16 3c-4 4-4 14 0 18M8 7h8M8 12h8M8 17h8" />
+        <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+          <path d="M18 4H6l6 8-6 8h12" />
         </svg>
       </div>
 
-      {/* Flask */}
+      {/* Square Root */}
       <div className="absolute bottom-[40%] left-[10%] animate-science-pulse text-teal-500/20">
-        <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5">
-          <path d="M9 3h6M10 3v15a2 2 0 002 2 2 2 0 002-2V3m-4 10h4" />
+        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5">
+          <path d="M18 4h-10l-2 15-3-5" />
         </svg>
       </div>
 
-      {/* Molecules / Bubbles */}
-      <div className="absolute top-[20%] right-[40%] w-3 h-3 rounded-full bg-sky-300 animate-science-pulse"></div>
-      <div className="absolute top-[25%] right-[42%] w-2 h-2 rounded-full bg-teal-300 animate-science-pulse" style={{ animationDelay: '1s' }}></div>
-      <div className="absolute bottom-[30%] left-[45%] w-4 h-4 rounded-full bg-sky-200 animate-science-pulse" style={{ animationDelay: '2s' }}></div>
-      <div className="absolute bottom-[15%] left-[25%] w-2 h-2 rounded-full bg-teal-200 animate-science-pulse" style={{ animationDelay: '1.5s' }}></div>
+      {/* Geometric Shapes */}
+      <div className="absolute top-[20%] right-[40%] w-4 h-4 border-2 border-sky-300 animate-science-pulse rotate-45"></div>
+      <div className="absolute top-[25%] right-[42%] w-3 h-3 bg-teal-300 rounded-full animate-science-pulse" style={{ animationDelay: '1s' }}></div>
+      <div className="absolute bottom-[30%] left-[45%] w-5 h-5 border-2 border-sky-200 animate-science-pulse" style={{ animationDelay: '2s' }}></div>
     </div>
   );
 };
@@ -105,7 +103,7 @@ const HomePage: React.FC = () => {
             <h2 className="text-4xl font-extrabold text-gray-900">مرحلتك الدراسية</h2>
             <div className="mt-4 h-1.5 w-24 bg-sky-500 mx-auto rounded-full"></div>
             <p className="mt-6 text-gray-600 max-w-2xl mx-auto text-lg">
-              كل ما تحتاجه للتفوق في مادة العلوم.
+              كل ما تحتاجه للتفوق في مادة الرياضيات.
             </p>
           </div>
 
@@ -454,7 +452,7 @@ const App: React.FC = () => {
   return (
     <Router>
       <div className="min-h-screen flex flex-col relative bg-slate-50">
-        <ScienceBackground />
+        <MathBackground />
         <Navbar />
         <main className="flex-grow">
           <ErrorBoundary>
@@ -479,22 +477,22 @@ const App: React.FC = () => {
         <footer className="bg-gray-900 text-gray-400 py-20 px-4 relative z-10">
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 items-center text-center md:text-right">
             <div>
-              <h3 className="text-white text-2xl font-extrabold mb-4">الأستاذة صفاء إسماعيل</h3>
-              <p className="text-lg">رحلتك نحو التميز في مادة العلوم تبدأ من هنا.</p>
+              <h3 className="text-white text-2xl font-extrabold mb-4">الأستاذ عمرو محسن</h3>
+              <p className="text-lg">رحلتك نحو التميز في مادة الرياضيات تبدأ من هنا.</p>
             </div>
             <div className="flex justify-center gap-6">
-              <a href="https://www.facebook.com/share/16t9uVs1Q1/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center hover:bg-sky-500 hover:text-white transition-all" title="فيسبوك">
+              <a href="https://www.facebook.com/share/18EimSRbRB/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center hover:bg-sky-500 hover:text-white transition-all" title="فيسبوك">
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
               </a>
-              <a href="https://youtube.com/@safaaesmail7729?si=7Pw4o4EbbIpmhgAc" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center hover:bg-red-500 hover:text-white transition-all" title="يوتيوب">
+              <a href="https://youtube.com/@amrmohsenhassan?si=oaRiOSRqDWX68W-L" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center hover:bg-red-500 hover:text-white transition-all" title="يوتيوب">
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
               </a>
-              <a href="https://wa.me/201222966617" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center hover:bg-green-500 hover:text-white transition-all" title="واتساب">
+              <a href="https://wa.me/2012111664511" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center hover:bg-green-500 hover:text-white transition-all" title="واتساب">
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
               </a>
             </div>
             <div className="text-sm">
-              &copy; {new Date().getFullYear()} جميع الحقوق محفوظة لمنصة الأستاذة صفاء إسماعيل التعليمية
+              &copy; {new Date().getFullYear()} جميع الحقوق محفوظة لمنصة الأستاذ عمرو محسن التعليمية
             </div>
           </div>
         </footer>
