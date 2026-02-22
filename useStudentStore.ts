@@ -11,6 +11,15 @@ export interface Student {
     lastSeen: string;
 }
 
+export interface RegistrationRequest {
+    id: string;
+    name: string;
+    phone: string;
+    level: string;
+    code: string;
+    createdAt: string;
+}
+
 const DB_PATH = 'students';
 
 export function useStudentStore() {
@@ -106,5 +115,37 @@ export function useStudentStore() {
         await update(ref(db, `${DB_PATH}/${studentId}`), data as any);
     }, []);
 
-    return { students, isLoading, registerStudent, removeStudent, loginByPhone, updateStudent };
+    const [requests, setRequests] = useState<RegistrationRequest[]>([]);
+
+    useEffect(() => {
+        const reqRef = ref(db, 'registration_requests');
+        const unsub = onValue(reqRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                const list = Object.keys(data).map(k => ({ ...data[k], id: k }));
+                setRequests(list);
+            } else {
+                setRequests([]);
+            }
+        });
+        return () => unsub();
+    }, []);
+
+    const createRegistrationRequest = useCallback(async (name: string, phone: string, level: string, code: string) => {
+        const reqRef = push(ref(db, 'registration_requests'));
+        await set(reqRef, {
+            name,
+            phone,
+            level,
+            code,
+            createdAt: new Date().toISOString()
+        });
+        return reqRef.key;
+    }, []);
+
+    const removeRegistrationRequest = useCallback(async (requestId: string) => {
+        await remove(ref(db, `registration_requests/${requestId}`));
+    }, []);
+
+    return { students, requests, isLoading, registerStudent, removeStudent, loginByPhone, updateStudent, createRegistrationRequest, removeRegistrationRequest };
 }
