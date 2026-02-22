@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   // Set the base path to your repository name for GitHub Pages
-  base: '/Mr_Amr_platform/',
+  base: '/',
   build: {
     // Increase the chunk size limit to suppress the warning
     chunkSizeWarningLimit: 1000,
