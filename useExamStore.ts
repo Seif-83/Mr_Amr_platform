@@ -11,26 +11,37 @@ export function useExamStore() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Failsafe: stop loading after 5 seconds even if Firebase hangs
+    const timer = setTimeout(() => {
+      console.warn('useExamStore: Loading timed out after 5s');
+      setIsLoading(false);
+    }, 5000);
+
+    console.log('useExamStore: Starting Firebase listener for path:', EXAMS_PATH);
     const dbRef = ref(db, EXAMS_PATH);
     const unsubscribe = onValue(dbRef, (snapshot) => {
+      console.log('useExamStore: Received snapshot, exists:', snapshot.exists());
       if (snapshot.exists()) {
         const val = snapshot.val();
-        // Firebase RTDB might store as object keyed by id or as array
         const list: Exam[] = Array.isArray(val) ? val : Object.keys(val).map(k => ({
           ...val[k],
           questions: val[k].questions || []
         }));
         setExams(list);
       } else {
+        console.log('useExamStore: No exams found.');
         setExams([]);
       }
       setIsLoading(false);
     }, (err) => {
-      console.error('Failed to read exams:', err);
+      console.error('useExamStore: Failed to read exams:', err);
       setIsLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      clearTimeout(timer);
+    };
   }, []);
 
   const createExam = useCallback(async (exam: Omit<Exam, 'id' | 'createdAt'>) => {

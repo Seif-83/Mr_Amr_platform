@@ -12,12 +12,19 @@ export function useContentStore() {
 
     // Listen for real-time updates from Firebase
     useEffect(() => {
+        // Failsafe: stop loading after 5 seconds even if Firebase hangs
+        const timer = setTimeout(() => {
+            console.warn('useContentStore: Loading timed out after 5s');
+            setIsLoading(false);
+        }, 5000);
+
+        console.log('useContentStore: Starting Firebase listener for path:', DB_PATH);
         const dbRef = ref(db, DB_PATH);
 
         const unsubscribe = onValue(dbRef, (snapshot) => {
+            console.log('useContentStore: Received snapshot, exists:', snapshot.exists());
             if (snapshot.exists()) {
                 const data = snapshot.val() as PrepData[];
-                // Ensure all levels have lessons array
                 const rawLevels = (Array.isArray(data) ? data : Object.values(data)) as PrepData[];
                 const validated = rawLevels.map(level => ({
                     ...level,
@@ -25,19 +32,21 @@ export function useContentStore() {
                 }));
                 setLevels(validated);
             } else {
-                // First time: seed Firebase with default data
+                console.log('useContentStore: No data found, seeding defaults...');
                 set(dbRef, PREP_LEVELS_DATA);
                 setLevels(PREP_LEVELS_DATA);
             }
             setIsLoading(false);
         }, (error) => {
-            console.error('Firebase read error:', error);
-            // Fallback to defaults if Firebase fails
+            console.error('useContentStore: Firebase read error:', error);
             setLevels(PREP_LEVELS_DATA);
             setIsLoading(false);
         });
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribe();
+            clearTimeout(timer);
+        };
     }, []);
 
     const addLesson = useCallback((levelId: string, lesson: Lesson) => {
