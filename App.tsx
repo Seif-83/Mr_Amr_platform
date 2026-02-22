@@ -26,12 +26,13 @@ const MathBackground: React.FC = () => {
 
       {/* Animated Glassmorphic Symbols */}
       <div className="absolute top-[15%] left-[10%] animate-science-float">
-        <div className="math-symbol-glass text-sky-500/40 shadow-xl">
-          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M18 4H6" />
-            <path d="M10 4s0 4 0 16" />
-            <path d="M14 4s0 4 0 16" />
-            <path d="M18 4h-2.5c-1.5 0-2.5 1-2.5 2.5V20" />
+        <div className="math-symbol-glass text-sky-500/40 shadow-xl overflow-hidden group">
+          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="transform group-hover:scale-110 transition-transform duration-700">
+            {/* Main stylized Pi */}
+            <path d="M4 4.5C4 4.22386 4.22386 4 4.5 4H19.5C19.7761 4 20 4.22386 20 4.5V5.5C20 5.77614 19.7761 6 19.5 6H18.2C17.5 6 17 6.5 17 7.2V17C17 18.7 15.7 20 14 20H13.5C12.7 20 12 19.3 12 18.5V7C12 6.4 11.6 6 11 6H8.5C7.7 6 7 6.7 7 7.5V17C7 18.1 6.1 19 5 19H4.5C4.2 19 4 18.8 4 18.5V17.5" strokeLinecap="round" />
+            {/* Inner accent line */}
+            <path d="M14.5 6V18" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.4" />
+            <path d="M9.5 6V17" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.4" />
           </svg>
         </div>
       </div>
