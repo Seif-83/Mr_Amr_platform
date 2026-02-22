@@ -385,7 +385,16 @@ const ContentPage: React.FC<{ type: 'videos' | 'notes' }> = ({ type }) => {
 
       <div className="max-w-7xl mx-auto px-4 -mt-32">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {(level.lessons || []).map(lesson => (
+          {type === 'notes' && (level.lessons || []).filter(l => l.pdfUrl && l.pdfUrl.trim() !== '').length === 0 && (
+            <div className="col-span-3 text-center py-20 text-gray-400">
+              <div className="text-5xl mb-4">📭</div>
+              <p className="text-xl font-bold">لا توجد مذكرات لهذه المرحلة حالياً</p>
+            </div>
+          )}
+          {(type === 'notes'
+            ? (level.lessons || []).filter(l => l.pdfUrl && l.pdfUrl.trim() !== '')
+            : (level.lessons || [])
+          ).map(lesson => (
             <React.Fragment key={lesson.id}>
               {type === 'videos' ? (
                 <VideoLessonCard lesson={lesson} levelId={level.id} />

@@ -27,7 +27,7 @@ const Hero: React.FC = () => {
             <div className="relative mx-auto w-full rounded-[3rem] shadow-2xl overflow-hidden ring-12 ring-white/50 backdrop-blur-sm">
               <img
                 className="w-full object-cover aspect-[4/5]"
-                src="/sections/logo2.jpg"
+                src="sections/logo2.jpeg"
                 alt="Science Learning"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-sky-900/40 via-transparent to-transparent"></div>
