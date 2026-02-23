@@ -76,3 +76,7 @@ export interface ExamResult {
   maxScore: number;
   submittedAt: number;
 }
+
+export interface SiteSettings {
+  heroImage: string;
+}

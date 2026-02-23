@@ -9,6 +9,12 @@ export const VALID_ACCESS_CODES = [
   'student-access-77'
 ];
 
+export const DB_PATH_SETTINGS = 'site_settings';
+
+export const DEFAULT_SITE_SETTINGS = {
+  heroImage: 'sections/logo2.jpg'
+};
+
 export const PREP_LEVELS_DATA: PrepData[] = [
   {
     id: '1st-prep',

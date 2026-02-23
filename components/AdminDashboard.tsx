@@ -26,13 +26,23 @@ function convertToEmbedUrl(url: string): string {
 
 const AdminDashboard: React.FC = () => {
     const navigate = useNavigate();
-    const { levels, addLesson, removeLesson, updateLesson, resetToDefaults } = useContentStore();
+    const {
+        levels,
+        siteSettings,
+        addLesson,
+        removeLesson,
+        updateLesson,
+        resetToDefaults,
+        updateLevelImage,
+        updateSiteSettings
+    } = useContentStore();
     const [activeTab, setActiveTab] = useState<PrepLevel>('1st-prep');
     const [showAddForm, setShowAddForm] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState<{ levelId: string; lessonId: string } | null>(null);
     const [showResetConfirm, setShowResetConfirm] = useState(false);
     const [successMsg, setSuccessMsg] = useState('');
     const [editingLesson, setEditingLesson] = useState<{ levelId: string; lessonId: string } | null>(null);
+    const [showImageSettings, setShowImageSettings] = useState(false);
 
     // Form state
     const [newTitle, setNewTitle] = useState('');
@@ -42,9 +52,9 @@ const AdminDashboard: React.FC = () => {
     const [newCode, setNewCode] = useState('');
     const [newIsPublic, setNewIsPublic] = useState(true);
     const [newCover, setNewCover] = useState<string | null>(null);
-    const [newPdfSource, setNewPdfSource] = useState<'link'|'upload'>('link');
+    const [newPdfSource, setNewPdfSource] = useState<'link' | 'upload'>('link');
     // Multiple videos support
-    const [newVideos, setNewVideos] = useState<{ id: string; title: string; videoUrl: string; description: string; source: 'link'|'upload' }[]>([]);
+    const [newVideos, setNewVideos] = useState<{ id: string; title: string; videoUrl: string; description: string; source: 'link' | 'upload' }[]>([]);
     // Codes generation state
     const [codesModalOpen, setCodesModalOpen] = useState(false);
     const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
@@ -214,6 +224,30 @@ const AdminDashboard: React.FC = () => {
         { id: '3rd-prep', label: 'الصف الثالث' },
     ];
 
+    const handleLevelImageUpload = (levelId: PrepLevel, file: File | null) => {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            if (e.target?.result) {
+                updateLevelImage(levelId, e.target.result as string);
+                showSuccess(`تم تحديث صورة ${levels.find(l => l.id === levelId)?.titleAr} ✓`);
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleHeroImageUpload = (file: File | null) => {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            if (e.target?.result) {
+                updateSiteSettings({ heroImage: e.target.result as string });
+                showSuccess('تم تحديث صورة الصفحة الرئيسية ✓');
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
     return (
         <div className="min-h-screen pb-20 relative z-10">
             {/* Header */}
@@ -252,6 +286,68 @@ const AdminDashboard: React.FC = () => {
                         🚪 خروج
                     </button>
                 </div>
+
+                {/* Image Management Section Toggle */}
+                <div className="mt-8">
+                    <button
+                        onClick={() => setShowImageSettings(!showImageSettings)}
+                        className="bg-white/20 hover:bg-white/30 backdrop-blur px-6 py-3 rounded-2xl font-bold transition-all flex items-center gap-2 mx-auto border border-white/30"
+                    >
+                        🖼️ {showImageSettings ? 'إغلاق إدارة الصور' : 'إدارة صور المنصة'}
+                    </button>
+                </div>
+
+                {showImageSettings && (
+                    <div className="mt-8 max-w-4xl mx-auto bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-6 md:p-10 animate-fade-in">
+                        <h2 className="text-2xl font-bold mb-8 text-center">إدارة صور المنصة</h2>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {/* Hero Image */}
+                            <div className="bg-white/5 p-4 rounded-3xl border border-white/10">
+                                <p className="text-sm font-bold mb-3 text-sky-100">صورة الصفحة الرئيسية</p>
+                                <div className="aspect-video bg-black/20 rounded-xl mb-4 overflow-hidden">
+                                    <img src={siteSettings.heroImage} alt="Hero" className="w-full h-full object-cover" />
+                                </div>
+                                <input
+                                    type="file"
+                                    id="hero-upload"
+                                    className="hidden"
+                                    accept="image/*"
+                                    onChange={(e) => handleHeroImageUpload(e.target.files?.[0] || null)}
+                                />
+                                <label
+                                    htmlFor="hero-upload"
+                                    className="block w-full text-center py-2 bg-sky-500 hover:bg-sky-400 text-white rounded-xl text-sm font-bold cursor-pointer transition-colors"
+                                >
+                                    تغيير الصورة
+                                </label>
+                            </div>
+
+                            {/* Prep Levels Images */}
+                            {levels.map(level => (
+                                <div key={level.id} className="bg-white/5 p-4 rounded-3xl border border-white/10">
+                                    <p className="text-sm font-bold mb-3 text-sky-100">{level.titleAr}</p>
+                                    <div className="aspect-video bg-black/20 rounded-xl mb-4 overflow-hidden">
+                                        <img src={level.image} alt={level.titleAr} className="w-full h-full object-cover" />
+                                    </div>
+                                    <input
+                                        type="file"
+                                        id={`level-upload-${level.id}`}
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={(e) => handleLevelImageUpload(level.id, e.target.files?.[0] || null)}
+                                    />
+                                    <label
+                                        htmlFor={`level-upload-${level.id}`}
+                                        className="block w-full text-center py-2 bg-teal-500 hover:bg-teal-400 text-white rounded-xl text-sm font-bold cursor-pointer transition-colors"
+                                    >
+                                        تغيير الصورة
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="max-w-6xl mx-auto px-4 -mt-10">
@@ -349,19 +445,19 @@ const AdminDashboard: React.FC = () => {
                                                     />
                                                     <div className="flex items-center gap-3 mb-2 text-sm">
                                                         <label className="flex items-center gap-2">
-                                                            <input 
-                                                                type="radio" 
-                                                                checked={video.source === 'link'} 
+                                                            <input
+                                                                type="radio"
+                                                                checked={video.source === 'link'}
                                                                 onChange={() => setNewVideos(newVideos.map((v, i) => i === idx ? { ...v, source: 'link' } : v))}
-                                                            /> 
+                                                            />
                                                             رابط
                                                         </label>
                                                         <label className="flex items-center gap-2">
-                                                            <input 
-                                                                type="radio" 
-                                                                checked={video.source === 'upload'} 
+                                                            <input
+                                                                type="radio"
+                                                                checked={video.source === 'upload'}
                                                                 onChange={() => setNewVideos(newVideos.map((v, i) => i === idx ? { ...v, source: 'upload' } : v))}
-                                                            /> 
+                                                            />
                                                             رفع من الجهاز
                                                         </label>
                                                     </div>
@@ -377,10 +473,10 @@ const AdminDashboard: React.FC = () => {
                                                             />
                                                         </>
                                                     ) : (
-                                                        <input 
-                                                            type="file" 
-                                                            accept="video/*" 
-                                                            onChange={e=>{
+                                                        <input
+                                                            type="file"
+                                                            accept="video/*"
+                                                            onChange={e => {
                                                                 const file = e.target.files?.[0];
                                                                 if (!file) return;
                                                                 const reader = new FileReader();
@@ -401,12 +497,12 @@ const AdminDashboard: React.FC = () => {
                                             + إضافة فيديو آخر
                                         </button>
                                     </div>
-                                    
+
                                     <div>
                                         <label className="block text-gray-700 font-bold mb-2">رابط المذكرة (PDF) أو رفع من الجهاز</label>
                                         <div className="flex items-center gap-3 mb-2">
-                                            <label className="flex items-center gap-2"><input type="radio" name="pdfSrc" checked={newPdfSource==='link'} onChange={()=>setNewPdfSource('link')} /> رابط</label>
-                                            <label className="flex items-center gap-2"><input type="radio" name="pdfSrc" checked={newPdfSource==='upload'} onChange={()=>setNewPdfSource('upload')} /> رفع من الجهاز</label>
+                                            <label className="flex items-center gap-2"><input type="radio" name="pdfSrc" checked={newPdfSource === 'link'} onChange={() => setNewPdfSource('link')} /> رابط</label>
+                                            <label className="flex items-center gap-2"><input type="radio" name="pdfSrc" checked={newPdfSource === 'upload'} onChange={() => setNewPdfSource('upload')} /> رفع من الجهاز</label>
                                         </div>
                                         {newPdfSource === 'link' ? (
                                             <input
@@ -418,7 +514,7 @@ const AdminDashboard: React.FC = () => {
                                                 dir="ltr"
                                             />
                                         ) : (
-                                            <input type="file" accept="application/pdf" onChange={e=>{
+                                            <input type="file" accept="application/pdf" onChange={e => {
                                                 const file = e.target.files?.[0];
                                                 if (!file) return;
                                                 const reader = new FileReader();
@@ -438,12 +534,12 @@ const AdminDashboard: React.FC = () => {
                                         />
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <input id="newIsPublic" type="checkbox" checked={newIsPublic} onChange={e=>setNewIsPublic(e.target.checked)} className="w-4 h-4" />
+                                        <input id="newIsPublic" type="checkbox" checked={newIsPublic} onChange={e => setNewIsPublic(e.target.checked)} className="w-4 h-4" />
                                         <label htmlFor="newIsPublic" className="text-gray-700">اجعل الدرس عاماً (لا يتطلب كود)</label>
                                     </div>
                                     <div>
                                         <label className="block text-gray-700 font-bold mb-2">صورة الغلاف (اختياري)</label>
-                                        <input type="file" accept="image/*" onChange={e=>{
+                                        <input type="file" accept="image/*" onChange={e => {
                                             const file = e.target.files?.[0];
                                             if (!file) return;
                                             const reader = new FileReader();
@@ -515,7 +611,7 @@ const AdminDashboard: React.FC = () => {
                                                         {/* Single-use codes badge */}
                                                         {lesson.codes && lesson.codes.length > 0 && (
                                                             <span className="bg-violet-50 text-violet-600 px-3 py-1 rounded-full font-medium flex items-center gap-1">
-                                                                🎟️ غير مستعملة: {(lesson.codes.filter(c=>!c.used)).length}
+                                                                🎟️ غير مستعملة: {(lesson.codes.filter(c => !c.used)).length}
                                                             </span>
                                                         )}
                                                     </div>
@@ -538,10 +634,10 @@ const AdminDashboard: React.FC = () => {
                                                     onClick={() => setDeleteConfirm({ levelId: activeTab, lessonId: lesson.id })}
                                                     className="px-5 py-3 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-all flex items-center gap-2 opacity-70 group-hover:opacity-100"
                                                 >
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                                حذف
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                    حذف
                                                 </button>
                                             </div>
                                         </div>
@@ -605,15 +701,15 @@ const AdminDashboard: React.FC = () => {
                         </div>
 
                         <form onSubmit={handleEditLesson} className="space-y-4">
-                            <input className="w-full p-3 border border-gray-200 rounded-xl" placeholder="عنوان الدرس" value={newTitle} onChange={e=>setNewTitle(e.target.value)} required />
-                            <textarea className="w-full p-3 border border-gray-200 rounded-xl resize-none" rows={3} placeholder="وصف الدرس" value={newDescription} onChange={e=>setNewDescription(e.target.value)} />
-                            <input className="w-full p-3 border border-gray-200 rounded-xl" placeholder="رابط الفيديو (YouTube)" value={newVideoUrl} onChange={e=>setNewVideoUrl(e.target.value)} />
-                            <input className="w-full p-3 border border-gray-200 rounded-xl" placeholder="رابط المذكرة (PDF)" value={newPdfUrl} onChange={e=>setNewPdfUrl(e.target.value)} />
-                            <input className="w-full p-3 border border-gray-200 rounded-xl" placeholder="كود الوصول (اختياري)" value={newCode} onChange={e=>setNewCode(e.target.value)} />
+                            <input className="w-full p-3 border border-gray-200 rounded-xl" placeholder="عنوان الدرس" value={newTitle} onChange={e => setNewTitle(e.target.value)} required />
+                            <textarea className="w-full p-3 border border-gray-200 rounded-xl resize-none" rows={3} placeholder="وصف الدرس" value={newDescription} onChange={e => setNewDescription(e.target.value)} />
+                            <input className="w-full p-3 border border-gray-200 rounded-xl" placeholder="رابط الفيديو (YouTube)" value={newVideoUrl} onChange={e => setNewVideoUrl(e.target.value)} />
+                            <input className="w-full p-3 border border-gray-200 rounded-xl" placeholder="رابط المذكرة (PDF)" value={newPdfUrl} onChange={e => setNewPdfUrl(e.target.value)} />
+                            <input className="w-full p-3 border border-gray-200 rounded-xl" placeholder="كود الوصول (اختياري)" value={newCode} onChange={e => setNewCode(e.target.value)} />
 
                             <div>
                                 <label className="block text-gray-700 font-bold mb-2">صورة الغلاف (اختياري)</label>
-                                <input type="file" accept="image/*" onChange={e=>{
+                                <input type="file" accept="image/*" onChange={e => {
                                     const file = e.target.files?.[0];
                                     if (!file) return;
                                     const reader = new FileReader();
@@ -699,28 +795,28 @@ const AdminDashboard: React.FC = () => {
                                     <p className="font-bold mb-2">جميع الأكواد لهذا الدرس</p>
                                     <div className="flex items-center gap-2">
                                         <button
-                                        onClick={() => {
-                                            // copy all codes (value + used flag)
-                                            const lesson = activeLevel?.lessons.find(l => l.id === selectedLessonId);
-                                            const codes = lesson?.codes ?? [];
-                                            if (codes.length === 0) {
-                                                showSuccess('لا توجد أكواد للنسخ');
-                                                return;
-                                            }
-                                            const text = codes.map(c => `${c.value}${c.used ? ' (مستخدم)' : ''}`).join('\n');
-                                            if (navigator.clipboard && navigator.clipboard.writeText) {
-                                                navigator.clipboard.writeText(text).then(() => showSuccess('تم نسخ جميع الأكواد ✓')).catch(() => showSuccess('فشل نسخ الأكواد'));
-                                            } else {
-                                                // fallback
-                                                const ta = document.createElement('textarea');
-                                                ta.value = text;
-                                                document.body.appendChild(ta);
-                                                ta.select();
-                                                try { document.execCommand('copy'); showSuccess('تم نسخ جميع الأكواد ✓'); } catch { showSuccess('فشل نسخ الأكواد'); }
-                                                document.body.removeChild(ta);
-                                            }
-                                        }}
-                                        className="px-3 py-1 bg-sky-50 text-sky-600 rounded-md text-sm"
+                                            onClick={() => {
+                                                // copy all codes (value + used flag)
+                                                const lesson = activeLevel?.lessons.find(l => l.id === selectedLessonId);
+                                                const codes = lesson?.codes ?? [];
+                                                if (codes.length === 0) {
+                                                    showSuccess('لا توجد أكواد للنسخ');
+                                                    return;
+                                                }
+                                                const text = codes.map(c => `${c.value}${c.used ? ' (مستخدم)' : ''}`).join('\n');
+                                                if (navigator.clipboard && navigator.clipboard.writeText) {
+                                                    navigator.clipboard.writeText(text).then(() => showSuccess('تم نسخ جميع الأكواد ✓')).catch(() => showSuccess('فشل نسخ الأكواد'));
+                                                } else {
+                                                    // fallback
+                                                    const ta = document.createElement('textarea');
+                                                    ta.value = text;
+                                                    document.body.appendChild(ta);
+                                                    ta.select();
+                                                    try { document.execCommand('copy'); showSuccess('تم نسخ جميع الأكواد ✓'); } catch { showSuccess('فشل نسخ الأكواد'); }
+                                                    document.body.removeChild(ta);
+                                                }
+                                            }}
+                                            className="px-3 py-1 bg-sky-50 text-sky-600 rounded-md text-sm"
                                         >
                                             نسخ الكل
                                         </button>
@@ -740,7 +836,7 @@ const AdminDashboard: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="space-y-2 max-h-48 overflow-auto">
-                                    {(activeLevel?.lessons.find(l=>l.id===selectedLessonId)?.codes ?? []).map(c => (
+                                    {(activeLevel?.lessons.find(l => l.id === selectedLessonId)?.codes ?? []).map(c => (
                                         <div key={c.value} className="flex items-center justify-between gap-4">
                                             <div className="flex items-center gap-3">
                                                 <span className="font-mono">{c.value}</span>

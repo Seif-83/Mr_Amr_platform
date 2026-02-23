@@ -1,7 +1,9 @@
-
 import React from 'react';
+import { useContentStore } from '../useContentStore';
 
 const Hero: React.FC = () => {
+  const { siteSettings } = useContentStore();
+
   return (
     <div className="relative overflow-hidden pt-20 pb-32 z-10 bg-transparent">
       {/* Soft Glows */}
@@ -29,7 +31,7 @@ const Hero: React.FC = () => {
             <div className="relative mx-auto w-full rounded-[3rem] shadow-2xl overflow-hidden ring-12 ring-white/50 backdrop-blur-sm">
               <img
                 className="w-full object-cover aspect-video"
-                src="sections/logo2.jpg"
+                src={siteSettings.heroImage}
                 alt="Math Learning"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-sky-900/40 via-transparent to-transparent"></div>

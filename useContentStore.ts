@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ref, onValue, set, get } from 'firebase/database';
+import { ref, onValue, set } from 'firebase/database';
 import { db } from './firebase';
-import { PrepData, Lesson } from './types';
-import { PREP_LEVELS_DATA } from './constants';
+import { DB_PATH_SETTINGS } from './constants';
+import { PrepData, Lesson, SiteSettings, PrepLevel } from './types';
+import { PREP_LEVELS_DATA, DEFAULT_SITE_SETTINGS } from './constants';
 
 const DB_PATH = 'platform_content';
 
 export function useContentStore() {
     const [levels, setLevels] = useState<PrepData[]>(PREP_LEVELS_DATA);
+    const [siteSettings, setSiteSettings] = useState<SiteSettings>(DEFAULT_SITE_SETTINGS);
     const [isLoading, setIsLoading] = useState(true);
 
     // Listen for real-time updates from Firebase
@@ -43,8 +45,20 @@ export function useContentStore() {
             setIsLoading(false);
         });
 
+        // Listen for site settings
+        const settingsRef = ref(db, DB_PATH_SETTINGS);
+        const unsubscribeSettings = onValue(settingsRef, (snapshot) => {
+            if (snapshot.exists()) {
+                setSiteSettings(snapshot.val());
+            } else {
+                set(settingsRef, DEFAULT_SITE_SETTINGS);
+                setSiteSettings(DEFAULT_SITE_SETTINGS);
+            }
+        });
+
         return () => {
             unsubscribe();
+            unsubscribeSettings();
             clearTimeout(timer);
         };
     }, []);
@@ -83,7 +97,30 @@ export function useContentStore() {
 
     const resetToDefaults = useCallback(() => {
         set(ref(db, DB_PATH), PREP_LEVELS_DATA);
+        set(ref(db, DB_PATH_SETTINGS), DEFAULT_SITE_SETTINGS);
     }, []);
 
-    return { levels, isLoading, addLesson, removeLesson, updateLesson, resetToDefaults };
+    const updateLevelImage = useCallback((levelId: PrepLevel, imageUrl: string) => {
+        const updated = levels.map(level =>
+            level.id === levelId ? { ...level, image: imageUrl } : level
+        );
+        set(ref(db, DB_PATH), updated);
+    }, [levels]);
+
+    const updateSiteSettings = useCallback((settings: Partial<SiteSettings>) => {
+        const updated = { ...siteSettings, ...settings };
+        set(ref(db, DB_PATH_SETTINGS), updated);
+    }, [siteSettings]);
+
+    return {
+        levels,
+        siteSettings,
+        isLoading,
+        addLesson,
+        removeLesson,
+        updateLesson,
+        resetToDefaults,
+        updateLevelImage,
+        updateSiteSettings
+    };
 }
