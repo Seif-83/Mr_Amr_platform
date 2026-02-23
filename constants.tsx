@@ -14,7 +14,7 @@ export const PREP_LEVELS_DATA: PrepData[] = [
     id: '1st-prep',
     title: '1st Prep',
     titleAr: 'الصف الأول الإعدادي',
-    image: 'sections/1st_prep.jpeg',
+    image: 'sections/1st_prep.jpg',
     description: 'Explore the basics of matter, energy, and living organisms.',
     lessons: []
   },
@@ -22,7 +22,7 @@ export const PREP_LEVELS_DATA: PrepData[] = [
     id: '2nd-prep',
     title: '2nd Prep',
     titleAr: 'الصف الثاني الإعدادي',
-    image: 'sections/2nd_prep.jpeg',
+    image: 'sections/2nd_prep.jpg',
     description: 'Dive deep into periodic tables, waves, and sound mechanics.',
     lessons: []
   },
@@ -30,7 +30,7 @@ export const PREP_LEVELS_DATA: PrepData[] = [
     id: '3rd-prep',
     title: '3rd Prep',
     titleAr: 'الصف الثالث الإعدادي',
-    image: 'sections/3rd_prep.jpeg',
+    image: 'sections/3rd_prep.jpg',
     description: 'Master physics, genetics, and the wonders of the universe.',
     lessons: []
   }

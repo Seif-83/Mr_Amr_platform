@@ -12,7 +12,7 @@ const Hero: React.FC = () => {
         <div className="lg:grid lg:grid-cols-2 lg:gap-12 items-center">
           <div className="text-right lg:text-right">
             <h1 className="text-5xl lg:text-7xl font-black text-gray-900 leading-tight mb-8">
-              <span className="block mb-4 text-gray-800">تعلم الرياضيات بمتعة مع</span>
+              <span className="block mb-4 text-gray-800">الرياضيات اسهل مع</span>
               <span className="block science-gradient bg-clip-text text-transparent">الأستاذ عمرو محسن</span>
             </h1>
             <p className="mt-8 text-2xl text-gray-600 leading-relaxed max-w-2xl lg:ml-0 lg:mr-auto font-medium">
@@ -28,8 +28,8 @@ const Hero: React.FC = () => {
           <div className="mt-16 lg:mt-0 lg:col-span-5 relative">
             <div className="relative mx-auto w-full rounded-[3rem] shadow-2xl overflow-hidden ring-12 ring-white/50 backdrop-blur-sm">
               <img
-                className="w-full object-cover aspect-[4/5]"
-                src="sections/logo2.jpeg"
+                className="w-full object-cover aspect-video"
+                src="sections/logo2.jpg"
                 alt="Math Learning"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-sky-900/40 via-transparent to-transparent"></div>
