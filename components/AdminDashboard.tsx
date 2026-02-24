@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useContentStore } from '../useContentStore';
-import { PrepLevel } from '../types';
+import { PrepLevel, Lesson } from '../types';
 
 // Converts any YouTube URL format to embed format
 function convertToEmbedUrl(url: string): string {
@@ -37,7 +37,7 @@ const AdminDashboard: React.FC = () => {
         updateSiteSettings
     } = useContentStore();
     const [activeTab, setActiveTab] = useState<PrepLevel>('1st-prep');
-    const [showAddForm, setShowAddForm] = useState(false);
+    const [addMode, setAddMode] = useState<'video' | 'pdf' | null>(null);
     const [deleteConfirm, setDeleteConfirm] = useState<{ levelId: string; lessonId: string } | null>(null);
     const [showResetConfirm, setShowResetConfirm] = useState(false);
     const [successMsg, setSuccessMsg] = useState('');
@@ -75,18 +75,18 @@ const AdminDashboard: React.FC = () => {
         if (!newTitle.trim()) return;
 
         const lessonId = `${activeTab.charAt(0)}-${Date.now()}`;
-        const formattedVideos = newVideos.map(v => ({
+        const formattedVideos = addMode === 'video' ? newVideos.map(v => ({
             id: v.id,
             title: v.title.trim(),
             videoUrl: v.source === 'link' ? convertToEmbedUrl(v.videoUrl) : v.videoUrl,
             description: v.description.trim()
-        }));
+        })) : [];
 
         addLesson(activeTab, {
             id: lessonId,
             title: newTitle.trim(),
             videos: formattedVideos.length > 0 ? formattedVideos : undefined,
-            pdfUrl: newPdfUrl.trim(),
+            pdfUrl: addMode === 'pdf' ? newPdfUrl.trim() : '',
             description: newDescription.trim(),
             code: newIsPublic ? '' : newCode.trim(),
             codes: newIsPublic ? [] : (newCode.trim() ? [{ value: newCode.trim(), used: false }] : []),
@@ -100,12 +100,8 @@ const AdminDashboard: React.FC = () => {
         setNewDescription('');
         setNewCode('');
         setNewIsPublic(true);
-        setNewPdfUrl('');
-        setNewDescription('');
-        setNewCode('');
-        setNewIsPublic(true);
         setNewCover(null);
-        setShowAddForm(false);
+        setAddMode(null);
         showSuccess('تم إضافة الدرس بنجاح ✓');
     };
 
@@ -393,7 +389,7 @@ const AdminDashboard: React.FC = () => {
                     {tabs.map(tab => (
                         <button
                             key={tab.id}
-                            onClick={() => { setActiveTab(tab.id); setShowAddForm(false); }}
+                            onClick={() => { setActiveTab(tab.id); setAddMode(null); }}
                             className={`flex-1 py-3 md:py-4 px-2 md:px-4 rounded-xl font-bold text-xs md:text-lg transition-all whitespace-nowrap ${activeTab === tab.id
                                 ? 'science-gradient text-white shadow-lg'
                                 : 'text-gray-600 hover:bg-gray-100'
@@ -413,26 +409,35 @@ const AdminDashboard: React.FC = () => {
                                 <h2 className="text-xl md:text-2xl font-bold text-gray-900">{activeLevel.titleAr}</h2>
                                 <p className="text-gray-500 mt-1 text-sm md:text-base">{activeLevel.lessons.length} دروس مسجلة</p>
                             </div>
-                            <button
-                                onClick={() => setShowAddForm(!showAddForm)}
-                                className={`px-4 md:px-8 py-2 md:py-4 rounded-2xl font-bold text-sm md:text-lg transition-all flex items-center gap-2 md:gap-3 whitespace-nowrap ${showAddForm
-                                    ? 'bg-gray-200 text-gray-700'
-                                    : 'science-gradient text-white shadow-lg shadow-sky-500/20 hover:shadow-xl'
-                                    }`}
-                            >
-                                {showAddForm ? (
-                                    <><span className="text-xl md:text-2xl">✕</span> <span className="hidden sm:inline">إلغاء</span></>
-                                ) : (
-                                    <><span className="text-xl md:text-2xl">+</span> <span className="hidden sm:inline">إضافة درس جديد</span><span className="sm:hidden">جديد</span></>
-                                )}
-                            </button>
+                            <div className="flex flex-wrap gap-2 md:gap-3">
+                                <button
+                                    onClick={() => setAddMode(addMode === 'video' ? null : 'video')}
+                                    className={`px-4 md:px-6 py-2 md:py-3 rounded-2xl font-bold text-sm md:text-base transition-all flex items-center gap-2 whitespace-nowrap ${addMode === 'video'
+                                        ? 'bg-red-100 text-red-600 border border-red-200'
+                                        : 'bg-red-500 text-white shadow-lg shadow-red-500/20 hover:shadow-xl'
+                                        }`}
+                                >
+                                    {addMode === 'video' ? '✕ إلغاء' : '🎥 إضافة فيديوهات'}
+                                </button>
+                                <button
+                                    onClick={() => setAddMode(addMode === 'pdf' ? null : 'pdf')}
+                                    className={`px-4 md:px-6 py-2 md:py-3 rounded-2xl font-bold text-sm md:text-base transition-all flex items-center gap-2 whitespace-nowrap ${addMode === 'pdf'
+                                        ? 'bg-teal-100 text-teal-600 border border-teal-200'
+                                        : 'bg-teal-600 text-white shadow-lg shadow-teal-500/20 hover:shadow-xl'
+                                        }`}
+                                >
+                                    {addMode === 'pdf' ? '✕ إلغاء' : '📚 إضافة مذكرة'}
+                                </button>
+                            </div>
                         </div>
 
                         {/* Add Form */}
-                        {showAddForm && (
+                        {addMode && (
                             <div className="p-8 bg-sky-50/50 border-b border-sky-100 animate-fade-in">
                                 <form onSubmit={handleAddLesson} className="space-y-5 max-w-2xl mx-auto">
-                                    <h3 className="text-xl font-bold text-gray-800 mb-4">📝 إضافة درس جديد</h3>
+                                    <h3 className="text-xl font-bold text-gray-800 mb-4">
+                                        {addMode === 'video' ? '🎥 إضافة فيديوهات جديدة' : '📚 إضافة مذكرة جديدة'}
+                                    </h3>
                                     <div>
                                         <label className="block text-gray-700 font-bold mb-2">عنوان الدرس *</label>
                                         <input
@@ -444,55 +449,56 @@ const AdminDashboard: React.FC = () => {
                                             required
                                         />
                                     </div>
-                                    <div>
-                                        <label className="block text-gray-700 font-bold mb-3">🎥 الفيديوهات (اختياري)</label>
-                                        <div className="space-y-3">
-                                            {newVideos.map((video, idx) => (
-                                                <div key={video.id} className="bg-white border border-gray-200 rounded-xl p-4 space-y-2">
-                                                    <div className="flex items-center justify-between">
-                                                        <h4 className="font-bold text-gray-700">فيديو #{idx + 1}</h4>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setNewVideos(newVideos.filter((_, i) => i !== idx))}
-                                                            className="text-red-500 hover:text-red-700 font-bold"
-                                                        >
-                                                            ✕ حذف
-                                                        </button>
-                                                    </div>
-                                                    <input
-                                                        type="text"
-                                                        value={video.title}
-                                                        onChange={e => setNewVideos(newVideos.map((v, i) => i === idx ? { ...v, title: e.target.value } : v))}
-                                                        placeholder="عنوان الفيديو"
-                                                        className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-sky-500/20"
-                                                    />
-                                                    <textarea
-                                                        value={video.description}
-                                                        onChange={e => setNewVideos(newVideos.map((v, i) => i === idx ? { ...v, description: e.target.value } : v))}
-                                                        placeholder="وصف الفيديو (اختياري)"
-                                                        rows={2}
-                                                        className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-sky-500/20 resize-none text-right"
-                                                    />
-                                                    <div className="flex items-center gap-3 mb-2 text-sm">
-                                                        <label className="flex items-center gap-2">
-                                                            <input
-                                                                type="radio"
-                                                                checked={video.source === 'link'}
-                                                                onChange={() => setNewVideos(newVideos.map((v, i) => i === idx ? { ...v, source: 'link' } : v))}
-                                                            />
-                                                            رابط
-                                                        </label>
-                                                        <label className="flex items-center gap-2">
-                                                            <input
-                                                                type="radio"
-                                                                checked={video.source === 'upload'}
-                                                                onChange={() => setNewVideos(newVideos.map((v, i) => i === idx ? { ...v, source: 'upload' } : v))}
-                                                            />
-                                                            رفع من الجهاز
-                                                        </label>
-                                                    </div>
-                                                    {video.source === 'link' ? (
-                                                        <>
+
+                                    {addMode === 'video' && (
+                                        <div>
+                                            <label className="block text-gray-700 font-bold mb-3">🎥 الفيديوهات</label>
+                                            <div className="space-y-3">
+                                                {newVideos.map((video, idx) => (
+                                                    <div key={video.id} className="bg-white border border-gray-200 rounded-xl p-4 space-y-2">
+                                                        <div className="flex items-center justify-between">
+                                                            <h4 className="font-bold text-gray-700">فيديو #{idx + 1}</h4>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setNewVideos(newVideos.filter((_, i) => i !== idx))}
+                                                                className="text-red-500 hover:text-red-700 font-bold"
+                                                            >
+                                                                ✕ حذف
+                                                            </button>
+                                                        </div>
+                                                        <input
+                                                            type="text"
+                                                            value={video.title}
+                                                            onChange={e => setNewVideos(newVideos.map((v, i) => i === idx ? { ...v, title: e.target.value } : v))}
+                                                            placeholder="عنوان الفيديو"
+                                                            className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-sky-500/20"
+                                                        />
+                                                        <textarea
+                                                            value={video.description}
+                                                            onChange={e => setNewVideos(newVideos.map((v, i) => i === idx ? { ...v, description: e.target.value } : v))}
+                                                            placeholder="وصف الفيديو (اختياري)"
+                                                            rows={2}
+                                                            className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-sky-500/20 resize-none text-right"
+                                                        />
+                                                        <div className="flex items-center gap-3 mb-2 text-sm">
+                                                            <label className="flex items-center gap-2">
+                                                                <input
+                                                                    type="radio"
+                                                                    checked={video.source === 'link'}
+                                                                    onChange={() => setNewVideos(newVideos.map((v, i) => i === idx ? { ...v, source: 'link' } : v))}
+                                                                />
+                                                                رابط
+                                                            </label>
+                                                            <label className="flex items-center gap-2">
+                                                                <input
+                                                                    type="radio"
+                                                                    checked={video.source === 'upload'}
+                                                                    onChange={() => setNewVideos(newVideos.map((v, i) => i === idx ? { ...v, source: 'upload' } : v))}
+                                                                />
+                                                                رفع من الجهاز
+                                                            </label>
+                                                        </div>
+                                                        {video.source === 'link' ? (
                                                             <input
                                                                 type="text"
                                                                 value={video.videoUrl}
@@ -501,58 +507,61 @@ const AdminDashboard: React.FC = () => {
                                                                 className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-sky-500/20 text-left"
                                                                 dir="ltr"
                                                             />
-                                                        </>
-                                                    ) : (
-                                                        <input
-                                                            type="file"
-                                                            accept="video/*"
-                                                            onChange={e => {
-                                                                const file = e.target.files?.[0];
-                                                                if (!file) return;
-                                                                const reader = new FileReader();
-                                                                reader.onload = ev => setNewVideos(newVideos.map((v, i) => i === idx ? { ...v, videoUrl: ev.target?.result as string } : v));
-                                                                reader.readAsDataURL(file);
-                                                            }}
-                                                            className="text-sm"
-                                                        />
-                                                    )}
-                                                </div>
-                                            ))}
+                                                        ) : (
+                                                            <input
+                                                                type="file"
+                                                                accept="video/*"
+                                                                onChange={e => {
+                                                                    const file = e.target.files?.[0];
+                                                                    if (!file) return;
+                                                                    const reader = new FileReader();
+                                                                    reader.onload = ev => setNewVideos(newVideos.map((v, i) => i === idx ? { ...v, videoUrl: ev.target?.result as string } : v));
+                                                                    reader.readAsDataURL(file);
+                                                                }}
+                                                                className="text-sm"
+                                                            />
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setNewVideos([...newVideos, { id: `video-${Date.now()}`, title: '', videoUrl: '', description: '', source: 'link' }])}
+                                                className="mt-3 w-full py-2 bg-sky-50 text-sky-600 border border-sky-200 rounded-xl font-bold hover:bg-sky-100 transition-all"
+                                            >
+                                                + إضافة فيديو آخر
+                                            </button>
                                         </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => setNewVideos([...newVideos, { id: `video-${Date.now()}`, title: '', videoUrl: '', description: '', source: 'link' }])}
-                                            className="mt-3 w-full py-2 bg-sky-50 text-sky-600 border border-sky-200 rounded-xl font-bold hover:bg-sky-100 transition-all"
-                                        >
-                                            + إضافة فيديو آخر
-                                        </button>
-                                    </div>
+                                    )}
 
-                                    <div>
-                                        <label className="block text-gray-700 font-bold mb-2">رابط المذكرة (PDF) أو رفع من الجهاز (اختياري)</label>
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <label className="flex items-center gap-2"><input type="radio" name="pdfSrc" checked={newPdfSource === 'link'} onChange={() => setNewPdfSource('link')} /> رابط</label>
-                                            <label className="flex items-center gap-2"><input type="radio" name="pdfSrc" checked={newPdfSource === 'upload'} onChange={() => setNewPdfSource('upload')} /> رفع من الجهاز</label>
+                                    {addMode === 'pdf' && (
+                                        <div>
+                                            <label className="block text-gray-700 font-bold mb-2">رابط المذكرة (PDF) أو رفع من الجهاز</label>
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <label className="flex items-center gap-2"><input type="radio" name="pdfSrc" checked={newPdfSource === 'link'} onChange={() => setNewPdfSource('link')} /> رابط</label>
+                                                <label className="flex items-center gap-2"><input type="radio" name="pdfSrc" checked={newPdfSource === 'upload'} onChange={() => setNewPdfSource('upload')} /> رفع من الجهاز</label>
+                                            </div>
+                                            {newPdfSource === 'link' ? (
+                                                <input
+                                                    type="text"
+                                                    value={newPdfUrl}
+                                                    onChange={e => setNewPdfUrl(e.target.value)}
+                                                    placeholder="رابط الملف"
+                                                    className="w-full p-4 bg-white border border-gray-200 rounded-xl focus:ring-4 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all text-left"
+                                                    dir="ltr"
+                                                />
+                                            ) : (
+                                                <input type="file" accept="application/pdf" onChange={e => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
+                                                    const reader = new FileReader();
+                                                    reader.onload = ev => setNewPdfUrl(ev.target?.result as string);
+                                                    reader.readAsDataURL(file);
+                                                }} />
+                                            )}
                                         </div>
-                                        {newPdfSource === 'link' ? (
-                                            <input
-                                                type="text"
-                                                value={newPdfUrl}
-                                                onChange={e => setNewPdfUrl(e.target.value)}
-                                                placeholder="https://example.com/file.pdf أو /filename.pdf"
-                                                className="w-full p-4 bg-white border border-gray-200 rounded-xl focus:ring-4 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all text-left"
-                                                dir="ltr"
-                                            />
-                                        ) : (
-                                            <input type="file" accept="application/pdf" onChange={e => {
-                                                const file = e.target.files?.[0];
-                                                if (!file) return;
-                                                const reader = new FileReader();
-                                                reader.onload = ev => setNewPdfUrl(ev.target?.result as string);
-                                                reader.readAsDataURL(file);
-                                            }} />
-                                        )}
-                                    </div>
+                                    )}
+
                                     <div>
                                         <label className="block text-gray-700 font-bold mb-2">وصف الدرس</label>
                                         <textarea
@@ -586,94 +595,49 @@ const AdminDashboard: React.FC = () => {
                                         type="submit"
                                         className="w-full py-4 science-gradient text-white rounded-2xl font-bold text-xl hover:shadow-2xl transition-all transform active:scale-95"
                                     >
-                                        ✓ إضافة الدرس
+                                        ✓ حفظ الدرس
                                     </button>
                                 </form>
                             </div>
                         )}
 
-                        {/* Lessons Table */}
-                        <div className="p-6">
-                            {activeLevel.lessons.length === 0 ? (
-                                <div className="text-center py-16 text-gray-400">
-                                    <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                    </svg>
-                                    <p className="text-xl font-bold">لا توجد دروس حالياً</p>
-                                    <p className="mt-2">اضغط "إضافة درس جديد" لإضافة أول درس</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    {activeLevel.lessons.map((lesson, index) => (
-                                        <div
-                                            key={lesson.id}
-                                            className="bg-white rounded-2xl p-6 border border-gray-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:shadow-md transition-all group"
-                                        >
-                                            <div className="flex items-start gap-4 flex-1">
-                                                <div className="w-10 h-10 bg-sky-100 text-sky-600 rounded-xl flex items-center justify-center font-bold flex-shrink-0">
-                                                    {index + 1}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-3">
-                                                        {lesson.coverImage && (
-                                                            <img src={lesson.coverImage} alt="cover" className="w-20 h-12 object-cover rounded-md flex-shrink-0" />
-                                                        )}
-                                                        <div className="min-w-0">
-                                                            <h4 className="text-lg font-bold text-gray-900">{lesson.title}</h4>
-                                                            <p className="text-gray-500 text-sm mt-1 line-clamp-1">{lesson.description}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex gap-4 mt-2 text-xs">
-                                                        {(lesson.videos?.length ?? 0) > 0 && (
-                                                            <span className="bg-red-50 text-red-600 px-3 py-1 rounded-full font-medium">🎥 {lesson.videos?.length} فيديو</span>
-                                                        )}
-                                                        {lesson.videoUrl && (
-                                                            <span className="bg-red-50 text-red-600 px-3 py-1 rounded-full font-medium">🎥 فيديو</span>
-                                                        )}
-                                                        {lesson.pdfUrl && (
-                                                            <span className="bg-teal-50 text-teal-600 px-3 py-1 rounded-full font-medium">📄 مذكرة</span>
-                                                        )}
-                                                        {lesson.code && (
-                                                            <span className="bg-amber-50 text-amber-600 px-3 py-1 rounded-full font-medium flex items-center gap-1">
-                                                                🔒 كود: {lesson.code}
-                                                            </span>
-                                                        )}
-                                                        {/* Single-use codes badge */}
-                                                        {lesson.codes && lesson.codes.length > 0 && (
-                                                            <span className="bg-violet-50 text-violet-600 px-3 py-1 rounded-full font-medium flex items-center gap-1">
-                                                                🎟️ غير مستعملة: {(lesson.codes.filter(c => !c.used)).length}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={() => openEditLesson(activeTab, lesson.id)}
-                                                    className="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl font-bold hover:bg-blue-100 transition-all flex items-center gap-2"
-                                                >
-                                                    ✏️ تعديل
-                                                </button>
-                                                <button
-                                                    onClick={() => openCodesForLesson(lesson.id)}
-                                                    className="px-4 py-2 bg-violet-50 text-violet-600 rounded-xl font-bold hover:bg-violet-100 transition-all flex items-center gap-2 opacity-80"
-                                                >
-                                                    🎟️ أكواد
-                                                </button>
-                                                <button
-                                                    onClick={() => setDeleteConfirm({ levelId: activeTab, lessonId: lesson.id })}
-                                                    className="px-5 py-3 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-all flex items-center gap-2 opacity-70 group-hover:opacity-100"
-                                                >
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                    حذف
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                        {/* Lessons Tables Section */}
+                        <div className="p-6 space-y-12">
+                            {/* Videos Section */}
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                                    <span className="text-2xl">🎥</span> فيديوهات الشرح
+                                </h3>
+                                {activeLevel.lessons.filter(l => (l.videos?.length ?? 0) > 0 || l.videoUrl).length === 0 ? (
+                                    <div className="text-center py-10 bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-gray-400">
+                                        <p>لا توجد فيديوهات حالياً</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {activeLevel.lessons.filter(l => (l.videos?.length ?? 0) > 0 || l.videoUrl).map((lesson, idx) => (
+                                            <LessonRow key={`video-${lesson.id}`} lesson={lesson} index={idx} onEdit={() => openEditLesson(activeTab, lesson.id)} onCodes={() => openCodesForLesson(lesson.id)} onDelete={() => setDeleteConfirm({ levelId: activeTab, lessonId: lesson.id })} />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Notes Section */}
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                                    <span className="text-2xl">📚</span> مذكرات الشرح
+                                </h3>
+                                {activeLevel.lessons.filter(l => l.pdfUrl).length === 0 ? (
+                                    <div className="text-center py-10 bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-gray-400">
+                                        <p>لا توجد مذكرات حالياً</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {activeLevel.lessons.filter(l => l.pdfUrl).map((lesson, idx) => (
+                                            <LessonRow key={`pdf-${lesson.id}`} lesson={lesson} index={idx} onEdit={() => openEditLesson(activeTab, lesson.id)} onCodes={() => openCodesForLesson(lesson.id)} onDelete={() => setDeleteConfirm({ levelId: activeTab, lessonId: lesson.id })} />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}
@@ -1036,5 +1000,74 @@ const AdminDashboard: React.FC = () => {
         </div>
     );
 };
+
+// Reusable Lesson Row Component
+const LessonRow: React.FC<{
+    lesson: Lesson;
+    index: number;
+    onEdit: () => void;
+    onCodes: () => void;
+    onDelete: () => void;
+}> = ({ lesson, index, onEdit, onCodes, onDelete }) => (
+    <div className="bg-white rounded-2xl p-6 border border-gray-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:shadow-md transition-all group">
+        <div className="flex items-start gap-4 flex-1">
+            <div className="w-10 h-10 bg-sky-100 text-sky-600 rounded-xl flex items-center justify-center font-bold flex-shrink-0">
+                {index + 1}
+            </div>
+            <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3">
+                    {lesson.coverImage && (
+                        <img src={lesson.coverImage} alt="cover" className="w-20 h-12 object-cover rounded-md flex-shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                        <h4 className="text-lg font-bold text-gray-900">{lesson.title}</h4>
+                        <p className="text-gray-500 text-sm mt-1 line-clamp-1">{lesson.description}</p>
+                    </div>
+                </div>
+                <div className="flex gap-4 mt-2 text-xs">
+                    {(lesson.videos?.length ?? 0) > 0 && (
+                        <span className="bg-red-50 text-red-600 px-3 py-1 rounded-full font-medium">🎥 {lesson.videos?.length} فيديو</span>
+                    )}
+                    {lesson.pdfUrl && (
+                        <span className="bg-teal-50 text-teal-600 px-3 py-1 rounded-full font-medium">📄 مذكرة</span>
+                    )}
+                    {lesson.code && (
+                        <span className="bg-amber-50 text-amber-600 px-3 py-1 rounded-full font-medium flex items-center gap-1">
+                            🔒 كود: {lesson.code}
+                        </span>
+                    )}
+                    {lesson.codes && lesson.codes.length > 0 && (
+                        <span className="bg-violet-50 text-violet-600 px-3 py-1 rounded-full font-medium flex items-center gap-1">
+                            🎟️ {(lesson.codes.filter(c => !c.used)).length} كود متاح
+                        </span>
+                    )}
+                </div>
+            </div>
+        </div>
+        <div className="flex items-center gap-2">
+            <button
+                onClick={onEdit}
+                className="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl font-bold hover:bg-blue-100 transition-all flex items-center gap-2"
+            >
+                ✏️ تعديل
+            </button>
+            <button
+                onClick={onCodes}
+                className="px-4 py-2 bg-violet-50 text-violet-600 rounded-xl font-bold hover:bg-violet-100 transition-all flex items-center gap-2 opacity-80"
+            >
+                🎟️ أكواد
+            </button>
+            <button
+                onClick={onDelete}
+                className="px-5 py-3 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-all flex items-center gap-2 opacity-70 group-hover:opacity-100"
+            >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                حذف
+            </button>
+        </div>
+    </div>
+);
 
 export default AdminDashboard;
