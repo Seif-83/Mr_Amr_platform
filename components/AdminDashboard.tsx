@@ -689,13 +689,13 @@ const AdminDashboard: React.FC = () => {
                                 <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                                     <span className="text-2xl">🎥</span> فيديوهات الشرح
                                 </h3>
-                                {activeLevel.lessons.filter(l => (l.videos?.length ?? 0) > 0 || l.videoUrl).length === 0 ? (
+                                {activeLevel.lessons.filter(l => (l.videos?.length ?? 0) > 0 || (l.videoUrl && l.videoUrl.trim() !== '')).length === 0 ? (
                                     <div className="text-center py-10 bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-gray-400">
                                         <p>لا توجد فيديوهات حالياً</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
-                                        {activeLevel.lessons.filter(l => (l.videos?.length ?? 0) > 0 || l.videoUrl).map((lesson, idx) => (
+                                        {activeLevel.lessons.filter(l => (l.videos?.length ?? 0) > 0 || (l.videoUrl && l.videoUrl.trim() !== '')).map((lesson, idx) => (
                                             <LessonRow key={`video-${lesson.id}`} lesson={lesson} index={idx} onEdit={() => openEditLesson(activeTab, lesson.id)} onCodes={() => openCodesForLesson(lesson.id)} onDelete={() => setDeleteConfirm({ levelId: activeTab, lessonId: lesson.id })} />
                                         ))}
                                     </div>
@@ -707,13 +707,13 @@ const AdminDashboard: React.FC = () => {
                                 <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                                     <span className="text-2xl">📚</span> مذكرات الشرح
                                 </h3>
-                                {activeLevel.lessons.filter(l => l.pdfUrl).length === 0 ? (
+                                {activeLevel.lessons.filter(l => (l.pdfFiles?.length ?? 0) > 0 || (l.pdfUrl && l.pdfUrl.trim() !== '')).length === 0 ? (
                                     <div className="text-center py-10 bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-gray-400">
                                         <p>لا توجد مذكرات حالياً</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
-                                        {activeLevel.lessons.filter(l => l.pdfUrl).map((lesson, idx) => (
+                                        {activeLevel.lessons.filter(l => (l.pdfFiles?.length ?? 0) > 0 || (l.pdfUrl && l.pdfUrl.trim() !== '')).map((lesson, idx) => (
                                             <LessonRow key={`pdf-${lesson.id}`} lesson={lesson} index={idx} onEdit={() => openEditLesson(activeTab, lesson.id)} onCodes={() => openCodesForLesson(lesson.id)} onDelete={() => setDeleteConfirm({ levelId: activeTab, lessonId: lesson.id })} />
                                         ))}
                                     </div>

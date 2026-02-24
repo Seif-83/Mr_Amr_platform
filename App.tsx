@@ -369,30 +369,32 @@ const CoursesPage: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 -mt-32">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {(level.lessons || []).map(lesson => (
-            <Link key={lesson.id} to={`/level/${levelId}/videos/${lesson.id}`} className="block group">
-              <div className="bg-glass rounded-[2rem] shadow-xl overflow-hidden border border-white/50 hover:shadow-2xl transition-all transform hover:scale-105">
-                <div
-                  className="aspect-video relative bg-black"
-                  style={lesson.coverImage ? { backgroundImage: `url(${lesson.coverImage})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { backgroundColor: '#000' }}
-                >
-                  {lesson.videoUrl && (lesson.videoUrl.startsWith('data:') || lesson.videoUrl.endsWith('.mp4')) ? (
-                    <div className="absolute top-2 right-2">
-                      <span className="bg-white/40 text-xs px-2 py-1 rounded">محمّل</span>
-                    </div>
-                  ) : null}
-                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-all flex items-end p-4">
-                    <div>
-                      <h3 className="text-white text-lg font-bold">{lesson.title}</h3>
+          {(level.lessons || [])
+            .filter(l => (l.videos && l.videos.length > 0) || (l.videoUrl && l.videoUrl.trim() !== ''))
+            .map(lesson => (
+              <Link key={lesson.id} to={`/level/${levelId}/videos/${lesson.id}`} className="block group">
+                <div className="bg-glass rounded-[2rem] shadow-xl overflow-hidden border border-white/50 hover:shadow-2xl transition-all transform hover:scale-105">
+                  <div
+                    className="aspect-video relative bg-black"
+                    style={lesson.coverImage ? { backgroundImage: `url(${lesson.coverImage})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { backgroundColor: '#000' }}
+                  >
+                    {lesson.videoUrl && (lesson.videoUrl.startsWith('data:') || lesson.videoUrl.endsWith('.mp4')) ? (
+                      <div className="absolute top-2 right-2">
+                        <span className="bg-white/40 text-xs px-2 py-1 rounded">محمّل</span>
+                      </div>
+                    ) : null}
+                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-all flex items-end p-4">
+                      <div>
+                        <h3 className="text-white text-lg font-bold">{lesson.title}</h3>
+                      </div>
                     </div>
                   </div>
+                  <div className="p-4">
+                    <p className="text-gray-600 text-sm line-clamp-2">{lesson.description}</p>
+                  </div>
                 </div>
-                <div className="p-4">
-                  <p className="text-gray-600 text-sm line-clamp-2">{lesson.description}</p>
-                </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))}
         </div>
       </div>
     </div>
