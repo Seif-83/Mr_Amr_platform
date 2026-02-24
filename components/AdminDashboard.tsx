@@ -55,6 +55,7 @@ const AdminDashboard: React.FC = () => {
     const [newPdfSource, setNewPdfSource] = useState<'link' | 'upload'>('link');
     // Multiple videos support
     const [newVideos, setNewVideos] = useState<{ id: string; title: string; videoUrl: string; description: string; source: 'link' | 'upload' }[]>([]);
+    const [newPdfs, setNewPdfs] = useState<{ id: string; title: string; pdfUrl: string; source: 'link' | 'upload' }[]>([]);
     // Codes generation state
     const [codesModalOpen, setCodesModalOpen] = useState(false);
     const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
@@ -82,11 +83,18 @@ const AdminDashboard: React.FC = () => {
             description: v.description.trim()
         })) : [];
 
+        const formattedPdfs = addMode === 'pdf' ? newPdfs.map(p => ({
+            id: p.id,
+            title: p.title.trim(),
+            pdfUrl: p.pdfUrl.trim()
+        })) : [];
+
         addLesson(activeTab, {
             id: lessonId,
             title: newTitle.trim(),
             videos: formattedVideos.length > 0 ? formattedVideos : undefined,
-            pdfUrl: addMode === 'pdf' ? newPdfUrl.trim() : '',
+            pdfUrl: addMode === 'pdf' && formattedPdfs.length > 0 ? formattedPdfs[0].pdfUrl : (addMode === 'pdf' ? newPdfUrl.trim() : ''),
+            pdfFiles: formattedPdfs.length > 0 ? formattedPdfs : undefined,
             description: newDescription.trim(),
             code: newIsPublic ? '' : newCode.trim(),
             codes: newIsPublic ? [] : (newCode.trim() ? [{ value: newCode.trim(), used: false }] : []),
@@ -97,6 +105,7 @@ const AdminDashboard: React.FC = () => {
         setNewTitle('');
         setNewVideos([]);
         setNewPdfUrl('');
+        setNewPdfs([]);
         setNewDescription('');
         setNewCode('');
         setNewIsPublic(true);
@@ -141,6 +150,22 @@ const AdminDashboard: React.FC = () => {
                 setNewVideos([]);
             }
 
+            if (lesson.pdfFiles && lesson.pdfFiles.length > 0) {
+                setNewPdfs(lesson.pdfFiles.map(p => ({
+                    ...p,
+                    source: p.pdfUrl.startsWith('data:application/pdf') ? 'upload' : 'link'
+                })));
+            } else if (lesson.pdfUrl) {
+                setNewPdfs([{
+                    id: `legacy-pdf-${Date.now()}`,
+                    title: 'المذكرة الأساسية',
+                    pdfUrl: lesson.pdfUrl,
+                    source: lesson.pdfUrl.startsWith('data:application/pdf') ? 'upload' : 'link'
+                }]);
+            } else {
+                setNewPdfs([]);
+            }
+
             setNewPdfSource(lesson.pdfUrl?.startsWith('data:application/pdf') ? 'upload' : 'link');
             setEditingLesson({ levelId, lessonId });
         }
@@ -157,11 +182,18 @@ const AdminDashboard: React.FC = () => {
             description: v.description.trim()
         }));
 
+        const formattedPdfs = newPdfs.map(p => ({
+            id: p.id,
+            title: p.title.trim(),
+            pdfUrl: p.pdfUrl.trim()
+        }));
+
         updateLesson(editingLesson.levelId, editingLesson.lessonId, {
             title: newTitle.trim(),
             videos: formattedVideos,
-            videoUrl: '', // Clear legacy URL as we now use the videos array
-            pdfUrl: newPdfUrl.trim(),
+            videoUrl: '', // Clear legacy URL
+            pdfUrl: formattedPdfs.length > 0 ? formattedPdfs[0].pdfUrl : '',
+            pdfFiles: formattedPdfs,
             description: newDescription.trim(),
             code: newIsPublic ? '' : newCode.trim(),
             coverImage: newCover || undefined,
@@ -172,6 +204,7 @@ const AdminDashboard: React.FC = () => {
         setNewTitle('');
         setNewVideos([]);
         setNewPdfUrl('');
+        setNewPdfs([]);
         setNewDescription('');
         setNewCode('');
         setNewIsPublic(true);
@@ -535,30 +568,72 @@ const AdminDashboard: React.FC = () => {
                                     )}
 
                                     {addMode === 'pdf' && (
-                                        <div>
-                                            <label className="block text-gray-700 font-bold mb-2">رابط المذكرة (PDF) أو رفع من الجهاز</label>
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <label className="flex items-center gap-2"><input type="radio" name="pdfSrc" checked={newPdfSource === 'link'} onChange={() => setNewPdfSource('link')} /> رابط</label>
-                                                <label className="flex items-center gap-2"><input type="radio" name="pdfSrc" checked={newPdfSource === 'upload'} onChange={() => setNewPdfSource('upload')} /> رفع من الجهاز</label>
+                                        <div className="space-y-4">
+                                            <label className="block text-gray-700 font-bold">📚 المذكرات (PDF)</label>
+                                            <div className="space-y-4">
+                                                {newPdfs.map((pdf, idx) => (
+                                                    <div key={pdf.id} className="bg-white border border-gray-200 rounded-xl p-4 space-y-3 shadow-sm relative">
+                                                        <div className="flex items-center justify-between">
+                                                            <h4 className="font-bold text-teal-600 text-sm">مذكرة #{idx + 1}</h4>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setNewPdfs(newPdfs.filter((_, i) => i !== idx))}
+                                                                className="text-red-500 hover:text-red-700 font-bold text-xs"
+                                                            >
+                                                                ✕ حذف
+                                                            </button>
+                                                        </div>
+                                                        <input
+                                                            type="text"
+                                                            value={pdf.title}
+                                                            onChange={e => setNewPdfs(newPdfs.map((p, i) => i === idx ? { ...p, title: e.target.value } : p))}
+                                                            placeholder="عنوان المذكرة (مثلاً: مذكرة الفصل الأول)"
+                                                            className="w-full p-3 bg-gray-50 border border-gray-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-teal-500/20"
+                                                        />
+                                                        <div className="flex items-center gap-4 text-xs font-medium text-gray-500">
+                                                            <label className="flex items-center gap-1 cursor-pointer">
+                                                                <input type="radio" checked={pdf.source === 'link'} onChange={() => setNewPdfs(newPdfs.map((p, i) => i === idx ? { ...p, source: 'link' } : p))} /> رابط
+                                                            </label>
+                                                            <label className="flex items-center gap-1 cursor-pointer">
+                                                                <input type="radio" checked={pdf.source === 'upload'} onChange={() => setNewPdfs(newPdfs.map((p, i) => i === idx ? { ...p, source: 'upload' } : p))} /> رفع
+                                                            </label>
+                                                        </div>
+                                                        {pdf.source === 'link' ? (
+                                                            <input
+                                                                type="text"
+                                                                value={pdf.pdfUrl}
+                                                                onChange={e => setNewPdfs(newPdfs.map((p, i) => i === idx ? { ...p, pdfUrl: e.target.value } : p))}
+                                                                placeholder="رابط ملف PDF"
+                                                                className="w-full p-3 bg-gray-50 border border-gray-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-teal-500/20 text-left"
+                                                                dir="ltr"
+                                                            />
+                                                        ) : (
+                                                            <div className="flex items-center gap-2">
+                                                                <input
+                                                                    type="file"
+                                                                    accept="application/pdf"
+                                                                    onChange={e => {
+                                                                        const file = e.target.files?.[0];
+                                                                        if (!file) return;
+                                                                        const reader = new FileReader();
+                                                                        reader.onload = ev => setNewPdfs(newPdfs.map((p, i) => i === idx ? { ...p, pdfUrl: ev.target?.result as string } : p));
+                                                                        reader.readAsDataURL(file);
+                                                                    }}
+                                                                    className="text-xs"
+                                                                />
+                                                                {pdf.pdfUrl && <span className="text-green-600 font-bold text-xs">✓ تم الرفع</span>}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
                                             </div>
-                                            {newPdfSource === 'link' ? (
-                                                <input
-                                                    type="text"
-                                                    value={newPdfUrl}
-                                                    onChange={e => setNewPdfUrl(e.target.value)}
-                                                    placeholder="رابط الملف"
-                                                    className="w-full p-4 bg-white border border-gray-200 rounded-xl focus:ring-4 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all text-left"
-                                                    dir="ltr"
-                                                />
-                                            ) : (
-                                                <input type="file" accept="application/pdf" onChange={e => {
-                                                    const file = e.target.files?.[0];
-                                                    if (!file) return;
-                                                    const reader = new FileReader();
-                                                    reader.onload = ev => setNewPdfUrl(ev.target?.result as string);
-                                                    reader.readAsDataURL(file);
-                                                }} />
-                                            )}
+                                            <button
+                                                type="button"
+                                                onClick={() => setNewPdfs([...newPdfs, { id: `pdf-${Date.now()}`, title: '', pdfUrl: '', source: 'link' }])}
+                                                className="mt-3 w-full py-3 bg-teal-50 text-teal-600 border border-teal-200 rounded-xl font-bold hover:bg-teal-100 transition-all flex items-center justify-center gap-2"
+                                            >
+                                                + إضافة مذكرة أخرى
+                                            </button>
                                         </div>
                                     )}
 
@@ -780,36 +855,71 @@ const AdminDashboard: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-gray-700 font-bold mb-2">المذكرة (PDF)</label>
-                                <div className="flex items-center gap-3 mb-2 text-sm">
-                                    <label className="flex items-center gap-2">
-                                        <input type="radio" checked={newPdfSource === 'link'} onChange={() => setNewPdfSource('link')} /> رابط
-                                    </label>
-                                    <label className="flex items-center gap-2">
-                                        <input type="radio" checked={newPdfSource === 'upload'} onChange={() => setNewPdfSource('upload')} /> رفع
-                                    </label>
+                                <label className="block text-gray-700 font-bold mb-2">📚 المذكرات (PDF)</label>
+                                <div className="space-y-3">
+                                    {newPdfs.map((pdf, idx) => (
+                                        <div key={pdf.id} className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <h4 className="font-bold text-teal-600 text-sm">مذكرة #{idx + 1}</h4>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setNewPdfs(newPdfs.filter((_, i) => i !== idx))}
+                                                    className="text-red-500 hover:text-red-700 font-bold text-xs"
+                                                >
+                                                    ✕ حذف
+                                                </button>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={pdf.title}
+                                                onChange={e => setNewPdfs(newPdfs.map((p, i) => i === idx ? { ...p, title: e.target.value } : p))}
+                                                placeholder="عنوان المذكرة"
+                                                className="w-full p-2 bg-white border border-gray-200 rounded-lg text-sm outline-none"
+                                            />
+                                            <div className="flex items-center gap-3 text-xs">
+                                                <label className="flex items-center gap-1">
+                                                    <input type="radio" checked={pdf.source === 'link'} onChange={() => setNewPdfs(newPdfs.map((p, i) => i === idx ? { ...p, source: 'link' } : p))} /> رابط
+                                                </label>
+                                                <label className="flex items-center gap-1">
+                                                    <input type="radio" checked={pdf.source === 'upload'} onChange={() => setNewPdfs(newPdfs.map((p, i) => i === idx ? { ...p, source: 'upload' } : p))} /> رفع
+                                                </label>
+                                            </div>
+                                            {pdf.source === 'link' ? (
+                                                <input
+                                                    type="text"
+                                                    value={pdf.pdfUrl}
+                                                    onChange={e => setNewPdfs(newPdfs.map((p, i) => i === idx ? { ...p, pdfUrl: e.target.value } : p))}
+                                                    placeholder="رابط المذكرة"
+                                                    className="w-full p-2 bg-white border border-gray-200 rounded-lg text-xs text-left"
+                                                    dir="ltr"
+                                                />
+                                            ) : (
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="file"
+                                                        accept="application/pdf"
+                                                        onChange={e => {
+                                                            const file = e.target.files?.[0];
+                                                            if (!file) return;
+                                                            const reader = new FileReader();
+                                                            reader.onload = ev => setNewPdfs(newPdfs.map((p, i) => i === idx ? { ...p, pdfUrl: ev.target?.result as string } : p));
+                                                            reader.readAsDataURL(file);
+                                                        }}
+                                                        className="text-xs flex-1"
+                                                    />
+                                                    {pdf.pdfUrl && <span className="text-[10px] text-green-600 font-bold">✓ تم الرفع</span>}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
-                                {newPdfSource === 'link' ? (
-                                    <input
-                                        type="text"
-                                        value={newPdfUrl}
-                                        onChange={e => setNewPdfUrl(e.target.value)}
-                                        placeholder="رابط المذكرة"
-                                        className="w-full p-3 border border-gray-200 rounded-xl text-left text-sm"
-                                        dir="ltr"
-                                    />
-                                ) : (
-                                    <div className="flex items-center gap-2">
-                                        <input type="file" accept="application/pdf" onChange={e => {
-                                            const file = e.target.files?.[0];
-                                            if (!file) return;
-                                            const reader = new FileReader();
-                                            reader.onload = ev => setNewPdfUrl(ev.target?.result as string);
-                                            reader.readAsDataURL(file);
-                                        }} className="text-sm flex-1" />
-                                        {newPdfUrl && <span className="text-[10px] text-green-600 font-bold">✓ تم الرفع</span>}
-                                    </div>
-                                )}
+                                <button
+                                    type="button"
+                                    onClick={() => setNewPdfs([...newPdfs, { id: `pdf-${Date.now()}`, title: '', pdfUrl: '', source: 'link' }])}
+                                    className="w-full py-2 bg-teal-50 text-teal-600 border border-teal-200 rounded-xl font-bold hover:bg-teal-100 transition-all text-sm mt-2"
+                                >
+                                    + إضافة مذكرة أخرى
+                                </button>
                             </div>
 
                             <div className="flex items-center gap-3 py-2">
@@ -1028,8 +1138,10 @@ const LessonRow: React.FC<{
                     {(lesson.videos?.length ?? 0) > 0 && (
                         <span className="bg-red-50 text-red-600 px-3 py-1 rounded-full font-medium">🎥 {lesson.videos?.length} فيديو</span>
                     )}
-                    {lesson.pdfUrl && (
-                        <span className="bg-teal-50 text-teal-600 px-3 py-1 rounded-full font-medium">📄 مذكرة</span>
+                    {((lesson.pdfFiles?.length ?? 0) > 0 || lesson.pdfUrl) && (
+                        <span className="bg-teal-50 text-teal-600 px-3 py-1 rounded-full font-medium">
+                            📄 {lesson.pdfFiles && lesson.pdfFiles.length > 0 ? `${lesson.pdfFiles.length} مذكرة` : 'مذكرة'}
+                        </span>
                     )}
                     {lesson.code && (
                         <span className="bg-amber-50 text-amber-600 px-3 py-1 rounded-full font-medium flex items-center gap-1">

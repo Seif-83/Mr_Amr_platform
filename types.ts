@@ -14,6 +14,7 @@ export interface Lesson {
   videoUrl?: string; // legacy single video URL
   videos?: Video[]; // new: multiple videos
   pdfUrl: string;
+  pdfFiles?: { id: string; title: string; pdfUrl: string }[];
   description: string;
   code?: string;
   coverImage?: string; // base64 data URL or image URL for lesson cover

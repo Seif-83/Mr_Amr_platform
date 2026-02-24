@@ -418,23 +418,126 @@ const NoteLessonCard: React.FC<{ lesson: Lesson; levelId: string }> = ({ lesson,
     return <LessonLock lesson={lesson} levelId={levelId} type="مذكرات" onUnlock={() => setIsLocked(false)} />;
   }
 
+  const pdfs = lesson.pdfFiles && lesson.pdfFiles.length > 0
+    ? lesson.pdfFiles
+    : (lesson.pdfUrl ? [{ id: 'legacy-' + lesson.id, title: lesson.title, pdfUrl: lesson.pdfUrl }] : []);
+
   return (
     <div className="bg-glass rounded-[2rem] shadow-xl overflow-hidden border border-white/50 flex flex-col hover:shadow-2xl transition-all group animate-fade-in">
       <div className="h-48 bg-teal-50 flex items-center justify-center text-teal-600">
         <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path><path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"></path></svg>
       </div>
       <div className="p-8">
-        <h3 className="text-2xl font-bold text-gray-900 mb-3">{lesson.title}</h3>
-        <p className="text-gray-500 leading-relaxed mb-8">{lesson.description}</p>
-        <a
-          href={lesson.pdfUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-full py-4 bg-teal-600 text-white rounded-2xl font-bold hover:bg-teal-700 transition-all flex items-center justify-center gap-3 shadow-lg shadow-teal-600/20"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-          فتح المذكرة
-        </a>
+        <h3 className="text-2xl font-bold text-gray-900 mb-3 font-sans pb-2 border-b border-gray-100">{lesson.title}</h3>
+        {lesson.description && <p className="text-gray-500 leading-relaxed mb-6 text-sm">{lesson.description}</p>}
+
+        <div className="space-y-3">
+          {pdfs.map((pdf, idx) => (
+            <a
+              key={pdf.id}
+              href={pdf.pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-4 bg-white border border-teal-100 text-teal-700 rounded-2xl font-bold hover:bg-teal-600 hover:text-white transition-all flex items-center justify-between px-6 shadow-sm hover:shadow-md group/btn"
+            >
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center text-xs group-hover/btn:bg-white/20 group-hover/btn:text-white">
+                  {idx + 1}
+                </span>
+                <span className="line-clamp-1">{pdf.title}</span>
+              </div>
+              <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const NotesPlaylistPage: React.FC = () => {
+  const { levelId } = useParams<{ levelId: string }>();
+  const { levels } = useContentStore();
+  const level = levels.find(l => l.id === levelId);
+
+  if (!level) return <div className="p-20 text-center font-bold text-2xl">المرحلة غير موجودة.</div>;
+
+  const lessonsWithNotes = (level.lessons || []).filter(l => (l.pdfFiles && l.pdfFiles.length > 0) || (l.pdfUrl && l.pdfUrl.trim() !== ''));
+
+  return (
+    <div className="min-h-screen pb-32 relative z-10">
+      <div className="science-gradient pt-32 pb-48 text-white text-center px-4">
+        <h1 className="text-5xl font-extrabold mb-4">{level.titleAr}</h1>
+        <p className="text-sky-100 text-2xl">📚 مذكرات الشرح</p>
+        <Link to="/" className="mt-8 inline-block bg-white/10 hover:bg-white/20 px-6 py-2 rounded-full transition-all">
+          ← العودة للرئيسية
+        </Link>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 -mt-32">
+        {lessonsWithNotes.length === 0 ? (
+          <div className="bg-white rounded-3xl p-20 text-center shadow-xl">
+            <div className="text-6xl mb-6">📭</div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">لا توجد مذكرات حالياً</h3>
+            <p className="text-gray-500">سيتم إضافة المذكرات قريباً لهذه المرحلة.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            {lessonsWithNotes.map(lesson => (
+              <Link key={lesson.id} to={`/level/${levelId}/notes/${lesson.id}`} className="block group">
+                <div className="bg-glass rounded-[2rem] shadow-xl overflow-hidden border border-white/50 hover:shadow-2xl transition-all transform hover:scale-105 h-full flex flex-col">
+                  <div
+                    className="aspect-video relative bg-teal-600 flex items-center justify-center"
+                    style={lesson.coverImage ? { backgroundImage: `url(${lesson.coverImage})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+                  >
+                    {!lesson.coverImage && (
+                      <svg className="w-16 h-16 text-white opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    )}
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all flex items-end p-6">
+                      <h3 className="text-white text-xl font-bold line-clamp-2">{lesson.title}</h3>
+                    </div>
+                  </div>
+                  <div className="p-6 flex-grow">
+                    <p className="text-gray-600 text-sm line-clamp-2 mb-4">{lesson.description}</p>
+                    <div className="flex items-center justify-between text-teal-600 font-bold text-sm">
+                      <span>عرض المذكرة ←</span>
+                      <span className="bg-teal-50 px-3 py-1 rounded-full">{lesson.pdfFiles?.length || (lesson.pdfUrl ? 1 : 0)} ملف</span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const NoteViewerPage: React.FC = () => {
+  const { levelId, lessonId } = useParams<{ levelId: string; lessonId: string }>();
+  const { levels } = useContentStore();
+  const level = levels.find(l => l.id === levelId);
+  const lesson = level?.lessons?.find(les => les.id === lessonId);
+
+  if (!level || !lesson) return <div className="p-20 text-center font-bold text-2xl">المحتوى غير موجود.</div>;
+
+  return (
+    <div className="min-h-screen pb-32 relative z-10 text-right" dir="rtl">
+      <div className="science-gradient pt-32 pb-12 text-white text-center px-4">
+        <Link to={`/level/${levelId}/notes`} className="inline-block bg-white/10 hover:bg-white/20 px-6 py-2 rounded-full transition-all mb-4">
+          ← العودة للمذكرات
+        </Link>
+        <h1 className="text-4xl font-extrabold mb-4">{lesson.title}</h1>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 -mt-12">
+        <NoteLessonCard lesson={lesson} levelId={level.id} />
       </div>
     </div>
   );
@@ -519,8 +622,9 @@ const App: React.FC = () => {
               <Route path="/" element={<HomePage />} />
               <Route path="/level/:levelId/courses" element={<CoursesPage />} />
               <Route path="/level/:levelId/videos/:lessonId" element={<VideoPlayerPage />} />
-              <Route path="/level/:levelId/videos" element={<ContentPage type="videos" />} />
-              <Route path="/level/:levelId/notes" element={<ContentPage type="notes" />} />
+              <Route path="/level/:levelId/videos" element={<CoursesPage />} />
+              <Route path="/level/:levelId/notes" element={<NotesPlaylistPage />} />
+              <Route path="/level/:levelId/notes/:lessonId" element={<NoteViewerPage />} />
               <Route path="/admin-login" element={<AdminLogin />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/exams" element={<AdminExams />} />
