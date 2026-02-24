@@ -121,11 +121,31 @@ const AdminDashboard: React.FC = () => {
         const lesson = levels.find(l => l.id === levelId)?.lessons.find(ls => ls.id === lessonId);
         if (lesson) {
             setNewTitle(lesson.title);
-            setNewVideoUrl(lesson.videoUrl || '');
             setNewPdfUrl(lesson.pdfUrl || '');
             setNewDescription(lesson.description || '');
             setNewCode(lesson.code || '');
             setNewCover(lesson.coverImage || null);
+            setNewIsPublic(!lesson.code && (!lesson.codes || lesson.codes.length === 0));
+
+            // Map existing videos or fallback to legacy videoUrl
+            if (lesson.videos && lesson.videos.length > 0) {
+                setNewVideos(lesson.videos.map(v => ({
+                    ...v,
+                    source: (v.videoUrl.startsWith('data:') || v.videoUrl.startsWith('blob:')) ? 'upload' : 'link'
+                } as any)));
+            } else if (lesson.videoUrl) {
+                setNewVideos([{
+                    id: `legacy-${Date.now()}`,
+                    title: 'الفيديو الأساسي',
+                    videoUrl: lesson.videoUrl,
+                    description: '',
+                    source: (lesson.videoUrl.startsWith('data:') || lesson.videoUrl.startsWith('blob:')) ? 'upload' : 'link'
+                }]);
+            } else {
+                setNewVideos([]);
+            }
+
+            setNewPdfSource(lesson.pdfUrl?.startsWith('data:application/pdf') ? 'upload' : 'link');
             setEditingLesson({ levelId, lessonId });
         }
     };
@@ -134,21 +154,31 @@ const AdminDashboard: React.FC = () => {
         e.preventDefault();
         if (!editingLesson || !newTitle.trim()) return;
 
+        const formattedVideos = newVideos.map(v => ({
+            id: v.id,
+            title: v.title.trim(),
+            videoUrl: v.source === 'link' ? convertToEmbedUrl(v.videoUrl) : v.videoUrl,
+            description: v.description.trim()
+        }));
+
         updateLesson(editingLesson.levelId, editingLesson.lessonId, {
             title: newTitle.trim(),
-            videoUrl: convertToEmbedUrl(newVideoUrl),
+            videos: formattedVideos,
+            videoUrl: '', // Clear legacy URL as we now use the videos array
             pdfUrl: newPdfUrl.trim(),
             description: newDescription.trim(),
-            code: newCode.trim(),
+            code: newIsPublic ? '' : newCode.trim(),
             coverImage: newCover || undefined,
         });
 
+        // Reset state
         setEditingLesson(null);
         setNewTitle('');
-        setNewVideoUrl('');
+        setNewVideos([]);
         setNewPdfUrl('');
         setNewDescription('');
         setNewCode('');
+        setNewIsPublic(true);
         setNewCover(null);
         showSuccess('تم تحديث الدرس بنجاح ✓');
     };
@@ -415,7 +445,7 @@ const AdminDashboard: React.FC = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-gray-700 font-bold mb-3">🎥 الفيديوهات</label>
+                                        <label className="block text-gray-700 font-bold mb-3">🎥 الفيديوهات (اختياري)</label>
                                         <div className="space-y-3">
                                             {newVideos.map((video, idx) => (
                                                 <div key={video.id} className="bg-white border border-gray-200 rounded-xl p-4 space-y-2">
@@ -499,7 +529,7 @@ const AdminDashboard: React.FC = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-gray-700 font-bold mb-2">رابط المذكرة (PDF) أو رفع من الجهاز</label>
+                                        <label className="block text-gray-700 font-bold mb-2">رابط المذكرة (PDF) أو رفع من الجهاز (اختياري)</label>
                                         <div className="flex items-center gap-3 mb-2">
                                             <label className="flex items-center gap-2"><input type="radio" name="pdfSrc" checked={newPdfSource === 'link'} onChange={() => setNewPdfSource('link')} /> رابط</label>
                                             <label className="flex items-center gap-2"><input type="radio" name="pdfSrc" checked={newPdfSource === 'upload'} onChange={() => setNewPdfSource('upload')} /> رفع من الجهاز</label>
@@ -687,11 +717,13 @@ const AdminDashboard: React.FC = () => {
                             <button
                                 onClick={() => {
                                     setEditingLesson(null);
+                                    setEditingLesson(null);
                                     setNewTitle('');
-                                    setNewVideoUrl('');
+                                    setNewVideos([]);
                                     setNewPdfUrl('');
                                     setNewDescription('');
                                     setNewCode('');
+                                    setNewIsPublic(true);
                                     setNewCover(null);
                                 }}
                                 className="text-gray-400 hover:text-gray-600"
@@ -701,11 +733,129 @@ const AdminDashboard: React.FC = () => {
                         </div>
 
                         <form onSubmit={handleEditLesson} className="space-y-4">
-                            <input className="w-full p-3 border border-gray-200 rounded-xl" placeholder="عنوان الدرس" value={newTitle} onChange={e => setNewTitle(e.target.value)} required />
-                            <textarea className="w-full p-3 border border-gray-200 rounded-xl resize-none" rows={3} placeholder="وصف الدرس" value={newDescription} onChange={e => setNewDescription(e.target.value)} />
-                            <input className="w-full p-3 border border-gray-200 rounded-xl" placeholder="رابط الفيديو (YouTube)" value={newVideoUrl} onChange={e => setNewVideoUrl(e.target.value)} />
-                            <input className="w-full p-3 border border-gray-200 rounded-xl" placeholder="رابط المذكرة (PDF)" value={newPdfUrl} onChange={e => setNewPdfUrl(e.target.value)} />
-                            <input className="w-full p-3 border border-gray-200 rounded-xl" placeholder="كود الوصول (اختياري)" value={newCode} onChange={e => setNewCode(e.target.value)} />
+                            <input className="w-full p-3 border border-gray-200 rounded-xl" placeholder="عنوان الدرس *" value={newTitle} onChange={e => setNewTitle(e.target.value)} required />
+                            <textarea className="w-full p-3 border border-gray-200 rounded-xl resize-none font-sans" rows={3} placeholder="وصف الدرس" value={newDescription} onChange={e => setNewDescription(e.target.value)} />
+
+                            {/* Multi-video management in Edit Modal */}
+                            <div className="space-y-4">
+                                <label className="block text-gray-700 font-bold">🎥 الفيديوهات</label>
+                                <div className="space-y-3">
+                                    {newVideos.map((video, idx) => (
+                                        <div key={video.id} className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <h4 className="font-bold text-gray-700 text-sm">فيديو #{idx + 1}</h4>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setNewVideos(newVideos.filter((_, i) => i !== idx))}
+                                                    className="text-red-500 hover:text-red-700 font-bold text-xs"
+                                                >
+                                                    ✕ حذف
+                                                </button>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={video.title}
+                                                onChange={e => setNewVideos(newVideos.map((v, i) => i === idx ? { ...v, title: e.target.value } : v))}
+                                                placeholder="عنوان الفيديو"
+                                                className="w-full p-2 bg-white border border-gray-200 rounded-lg text-sm outline-none"
+                                            />
+                                            <div className="flex items-center gap-3 text-xs">
+                                                <label className="flex items-center gap-1">
+                                                    <input
+                                                        type="radio"
+                                                        checked={video.source === 'link'}
+                                                        onChange={() => setNewVideos(newVideos.map((v, i) => i === idx ? { ...v, source: 'link' } : v))}
+                                                    />
+                                                    رابط
+                                                </label>
+                                                <label className="flex items-center gap-1">
+                                                    <input
+                                                        type="radio"
+                                                        checked={video.source === 'upload'}
+                                                        onChange={() => setNewVideos(newVideos.map((v, i) => i === idx ? { ...v, source: 'upload' } : v))}
+                                                    />
+                                                    رفع
+                                                </label>
+                                            </div>
+                                            {video.source === 'link' ? (
+                                                <input
+                                                    type="text"
+                                                    value={video.videoUrl}
+                                                    onChange={e => setNewVideos(newVideos.map((v, i) => i === idx ? { ...v, videoUrl: e.target.value } : v))}
+                                                    placeholder="رابط الفيديو (YouTube/MP4)"
+                                                    className="w-full p-2 bg-white border border-gray-200 rounded-lg text-xs text-left"
+                                                    dir="ltr"
+                                                />
+                                            ) : (
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="file"
+                                                        accept="video/*"
+                                                        onChange={e => {
+                                                            const file = e.target.files?.[0];
+                                                            if (!file) return;
+                                                            const reader = new FileReader();
+                                                            reader.onload = ev => setNewVideos(newVideos.map((v, i) => i === idx ? { ...v, videoUrl: ev.target?.result as string } : v));
+                                                            reader.readAsDataURL(file);
+                                                        }}
+                                                        className="text-xs flex-1"
+                                                    />
+                                                    {video.videoUrl && <span className="text-[10px] text-green-600 font-bold">✓ تم الرفع</span>}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setNewVideos([...newVideos, { id: `video-${Date.now()}`, title: '', videoUrl: '', description: '', source: 'link' }])}
+                                    className="w-full py-2 bg-sky-50 text-sky-600 border border-sky-200 rounded-xl font-bold hover:bg-sky-100 transition-all text-sm"
+                                >
+                                    + إضافة فيديو آخر
+                                </button>
+                            </div>
+
+                            <div>
+                                <label className="block text-gray-700 font-bold mb-2">المذكرة (PDF)</label>
+                                <div className="flex items-center gap-3 mb-2 text-sm">
+                                    <label className="flex items-center gap-2">
+                                        <input type="radio" checked={newPdfSource === 'link'} onChange={() => setNewPdfSource('link')} /> رابط
+                                    </label>
+                                    <label className="flex items-center gap-2">
+                                        <input type="radio" checked={newPdfSource === 'upload'} onChange={() => setNewPdfSource('upload')} /> رفع
+                                    </label>
+                                </div>
+                                {newPdfSource === 'link' ? (
+                                    <input
+                                        type="text"
+                                        value={newPdfUrl}
+                                        onChange={e => setNewPdfUrl(e.target.value)}
+                                        placeholder="رابط المذكرة"
+                                        className="w-full p-3 border border-gray-200 rounded-xl text-left text-sm"
+                                        dir="ltr"
+                                    />
+                                ) : (
+                                    <div className="flex items-center gap-2">
+                                        <input type="file" accept="application/pdf" onChange={e => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+                                            const reader = new FileReader();
+                                            reader.onload = ev => setNewPdfUrl(ev.target?.result as string);
+                                            reader.readAsDataURL(file);
+                                        }} className="text-sm flex-1" />
+                                        {newPdfUrl && <span className="text-[10px] text-green-600 font-bold">✓ تم الرفع</span>}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex items-center gap-3 py-2">
+                                <input id="editIsPublic" type="checkbox" checked={newIsPublic} onChange={e => setNewIsPublic(e.target.checked)} className="w-4 h-4" />
+                                <label htmlFor="editIsPublic" className="text-gray-700 text-sm">اجعل الدرس عاماً (لا يتطلب كود)</label>
+                            </div>
+
+                            {!newIsPublic && (
+                                <input className="w-full p-3 border border-gray-200 rounded-xl text-sm" placeholder="كود الوصول (اختياري)" value={newCode} onChange={e => setNewCode(e.target.value)} />
+                            )}
 
                             <div>
                                 <label className="block text-gray-700 font-bold mb-2">صورة الغلاف (اختياري)</label>
@@ -728,11 +878,13 @@ const AdminDashboard: React.FC = () => {
                                     type="button"
                                     onClick={() => {
                                         setEditingLesson(null);
+                                        setEditingLesson(null);
                                         setNewTitle('');
-                                        setNewVideoUrl('');
+                                        setNewVideos([]);
                                         setNewPdfUrl('');
                                         setNewDescription('');
                                         setNewCode('');
+                                        setNewIsPublic(true);
                                         setNewCover(null);
                                     }}
                                     className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-2xl font-bold hover:bg-gray-200"
