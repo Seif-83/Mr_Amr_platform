@@ -212,53 +212,31 @@ const HomePage: React.FC = () => {
   );
 };
 
-const VideoLessonCard: React.FC<{ lesson: Lesson; levelId: string }> = ({ lesson, levelId }) => {
+const LessonLock: React.FC<{
+  lesson: Lesson;
+  levelId: string;
+  onUnlock: () => void;
+  type: 'فيديوهات' | 'مذكرات'
+}> = ({ lesson, levelId, onUnlock, type }) => {
   const { updateLesson } = useContentStore();
-  const [isLocked, setIsLocked] = useState<boolean>(() => {
-    // If lesson has single-use codes, it's locked unless unlocked in session
-    if (lesson.codes && lesson.codes.length > 0) return !(sessionStorage.getItem(`video_unlocked_${lesson.id}`) === 'true');
-    return !!lesson.code;
-  });
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
 
-  // Keep locked state in sync when lesson changes
-  useEffect(() => {
-    if (lesson.codes && lesson.codes.length > 0) {
-      const unlocked = sessionStorage.getItem(`video_unlocked_${lesson.id}`);
-      setIsLocked(!(unlocked === 'true'));
-    } else {
-      setIsLocked(!!lesson.code);
-    }
-  }, [lesson.id, lesson.code, lesson.codes]);
-
-
-
   const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // If single-use codes are configured for this lesson
     if (lesson.codes && lesson.codes.length > 0) {
       const entered = code.trim();
       const found = lesson.codes.find(c => c.value === entered);
-      if (!found) {
-        setError('الكود غير صحيح');
-        return;
-      }
-      if (found.used) {
-        setError('هذا الكود مستخدم بالفعل');
-        return;
-      }
+      if (!found) { setError('الكود غير صحيح'); return; }
+      if (found.used) { setError('هذا الكود مستخدم بالفعل'); return; }
 
-      // Mark code as used and assign to student (if available)
       const studentPhone = sessionStorage.getItem('student_phone') || sessionStorage.getItem('student_name') || null;
       const updatedCodes = (lesson.codes || []).map(c => c.value === entered ? { ...c, used: true, assignedTo: studentPhone } : c);
 
       try {
         await updateLesson(levelId, lesson.id, { codes: updatedCodes });
-        setIsLocked(false);
-        sessionStorage.setItem(`video_unlocked_${lesson.id}`, 'true');
-        setError('');
+        sessionStorage.setItem(`lesson_unlocked_${lesson.id}`, 'true');
+        onUnlock();
       } catch (err) {
         console.error('Failed to mark code used', err);
         setError('حدث خطأ، يرجى المحاولة لاحقاً');
@@ -266,56 +244,73 @@ const VideoLessonCard: React.FC<{ lesson: Lesson; levelId: string }> = ({ lesson
       return;
     }
 
-    // Legacy single static code
     if (code.trim() === lesson.code) {
-      setIsLocked(false);
-      sessionStorage.setItem(`video_unlocked_${lesson.id}`, 'true');
-      setError('');
+      sessionStorage.setItem(`lesson_unlocked_${lesson.id}`, 'true');
+      onUnlock();
     } else {
       setError('الكود غير صحيح');
     }
   };
+
+  return (
+    <div className="bg-glass rounded-[2rem] shadow-xl border border-white/50 p-12 text-center animate-fade-in">
+      <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
+        <span className="text-5xl">🔒</span>
+      </div>
+      <h3 className="text-white font-bold mb-2 text-2xl">هذه الـ{type} محمية بكود</h3>
+      {lesson.codes && lesson.codes.length > 0 && lesson.codes.every(c => c.used) ? (
+        <div className="text-gray-300 max-w-xs mx-auto mt-4">
+          <p className="mb-2">عذراً، لا توجد أكواد متاحة حالياً.</p>
+          <p>يرجى التواصل مع المعلم للحصول على أكواد جديدة.</p>
+        </div>
+      ) : (
+        <form onSubmit={handleUnlock} className="w-full max-w-xs space-y-3 mt-6 mx-auto">
+          <input
+            type="text"
+            value={code}
+            onChange={e => setCode(e.target.value)}
+            placeholder="أدخل كود الوصول"
+            className="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white text-center focus:ring-2 focus:ring-sky-500 outline-none"
+          />
+          {error && <p className="text-red-400 text-sm font-bold">{error}</p>}
+          <button
+            type="submit"
+            className="w-full py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-bold transition-colors"
+          >
+            فتح المحتوى
+          </button>
+        </form>
+      )}
+    </div>
+  );
+};
+
+const VideoLessonCard: React.FC<{ lesson: Lesson; levelId: string }> = ({ lesson, levelId }) => {
+  const [isLocked, setIsLocked] = useState<boolean>(() => {
+    if (sessionStorage.getItem(`lesson_unlocked_${lesson.id}`) === 'true') return false;
+    return !!lesson.code || (!!lesson.codes && lesson.codes.length > 0);
+  });
+
+  useEffect(() => {
+    const unlocked = sessionStorage.getItem(`lesson_unlocked_${lesson.id}`) === 'true';
+    if (unlocked) {
+      setIsLocked(false);
+    } else {
+      setIsLocked(!!lesson.code || (!!lesson.codes && lesson.codes.length > 0));
+    }
+  }, [lesson.id, lesson.code, lesson.codes]);
 
   // Get videos from lesson: either new videos array or fallback to single videoUrl
   const videos = lesson.videos && lesson.videos.length > 0
     ? lesson.videos
     : (lesson.videoUrl ? [{ id: 'legacy-' + lesson.id, title: lesson.title, videoUrl: lesson.videoUrl }] : []);
 
+  if (isLocked) {
+    return <LessonLock lesson={lesson} levelId={levelId} type="فيديوهات" onUnlock={() => setIsLocked(false)} />;
+  }
+
   return (
     <div className="space-y-8">
-      {/* Lock overlay if needed */}
-      {isLocked && ((lesson.codes?.length ?? 0) > 0 || lesson.code) && (
-        <div className="bg-glass rounded-[2rem] shadow-xl border border-white/50 p-12 text-center">
-          <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-5xl">🔒</span>
-          </div>
-          <h3 className="text-white font-bold mb-2 text-2xl">هذه الفيديوهات محمية بكود</h3>
-          {lesson.codes && lesson.codes.length > 0 && lesson.codes.every(c => c.used) ? (
-            <div className="text-gray-300 max-w-xs mx-auto mt-4">
-              <p className="mb-2">عذراً، لا توجد أكواد متاحة حالياً.</p>
-              <p>يرجى التواصل مع المعلم للحصول على أكواد جديدة.</p>
-            </div>
-          ) : (
-            <form onSubmit={handleUnlock} className="w-full max-w-xs space-y-3 mt-6 mx-auto">
-              <input
-                type="text"
-                value={code}
-                onChange={e => setCode(e.target.value)}
-                placeholder="أدخل كود الفيديو"
-                className="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white text-center focus:ring-2 focus:ring-sky-500 outline-none"
-              />
-              {error && <p className="text-red-400 text-sm font-bold">{error}</p>}
-              <button
-                type="submit"
-                className="w-full py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-bold transition-colors"
-              >
-                مشاهدة
-              </button>
-            </form>
-          )}
-        </div>
-      )}
-
       {/* Display all videos */}
       {!isLocked && videos.map((video, idx) => (
         <div key={video.id} className="bg-glass rounded-[2rem] shadow-xl overflow-hidden border border-white/50 flex flex-col">
@@ -404,6 +399,47 @@ const CoursesPage: React.FC = () => {
   );
 };
 
+const NoteLessonCard: React.FC<{ lesson: Lesson; levelId: string }> = ({ lesson, levelId }) => {
+  const [isLocked, setIsLocked] = useState<boolean>(() => {
+    if (sessionStorage.getItem(`lesson_unlocked_${lesson.id}`) === 'true') return false;
+    return !!lesson.code || (!!lesson.codes && lesson.codes.length > 0);
+  });
+
+  useEffect(() => {
+    const unlocked = sessionStorage.getItem(`lesson_unlocked_${lesson.id}`) === 'true';
+    if (unlocked) {
+      setIsLocked(false);
+    } else {
+      setIsLocked(!!lesson.code || (!!lesson.codes && lesson.codes.length > 0));
+    }
+  }, [lesson.id, lesson.code, lesson.codes]);
+
+  if (isLocked) {
+    return <LessonLock lesson={lesson} levelId={levelId} type="مذكرات" onUnlock={() => setIsLocked(false)} />;
+  }
+
+  return (
+    <div className="bg-glass rounded-[2rem] shadow-xl overflow-hidden border border-white/50 flex flex-col hover:shadow-2xl transition-all group animate-fade-in">
+      <div className="h-48 bg-teal-50 flex items-center justify-center text-teal-600">
+        <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path><path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"></path></svg>
+      </div>
+      <div className="p-8">
+        <h3 className="text-2xl font-bold text-gray-900 mb-3">{lesson.title}</h3>
+        <p className="text-gray-500 leading-relaxed mb-8">{lesson.description}</p>
+        <a
+          href={lesson.pdfUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full py-4 bg-teal-600 text-white rounded-2xl font-bold hover:bg-teal-700 transition-all flex items-center justify-center gap-3 shadow-lg shadow-teal-600/20"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+          فتح المذكرة
+        </a>
+      </div>
+    </div>
+  );
+};
+
 const ContentPage: React.FC<{ type: 'videos' | 'notes' }> = ({ type }) => {
   const { levelId } = useParams<{ levelId: string }>();
   const { levels, isLoading } = useContentStore();
@@ -437,24 +473,7 @@ const ContentPage: React.FC<{ type: 'videos' | 'notes' }> = ({ type }) => {
               {type === 'videos' ? (
                 <VideoLessonCard lesson={lesson} levelId={level.id} />
               ) : (
-                <div className="bg-glass rounded-[2rem] shadow-xl overflow-hidden border border-white/50 flex flex-col hover:shadow-2xl transition-all group">
-                  <div className="h-48 bg-teal-50 flex items-center justify-center text-teal-600">
-                    <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path><path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"></path></svg>
-                  </div>
-                  <div className="p-8">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-3">{lesson.title}</h3>
-                    <p className="text-gray-500 leading-relaxed mb-8">{lesson.description}</p>
-                    <a
-                      href={lesson.pdfUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full py-4 bg-teal-600 text-white rounded-2xl font-bold hover:bg-teal-700 transition-all flex items-center justify-center gap-3 shadow-lg shadow-teal-600/20"
-                    >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                      فتح المذكرة
-                    </a>
-                  </div>
-                </div>
+                <NoteLessonCard lesson={lesson} levelId={level.id} />
               )}
             </React.Fragment>
           ))}
