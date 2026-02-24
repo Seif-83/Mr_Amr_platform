@@ -89,17 +89,20 @@ const AdminDashboard: React.FC = () => {
             pdfUrl: p.pdfUrl.trim()
         })) : [];
 
-        addLesson(activeTab, {
+        const lessonData: any = {
             id: lessonId,
             title: newTitle.trim(),
-            videos: formattedVideos.length > 0 ? formattedVideos : undefined,
             pdfUrl: addMode === 'pdf' && formattedPdfs.length > 0 ? formattedPdfs[0].pdfUrl : (addMode === 'pdf' ? newPdfUrl.trim() : ''),
-            pdfFiles: formattedPdfs.length > 0 ? formattedPdfs : undefined,
             description: newDescription.trim(),
             code: newIsPublic ? '' : newCode.trim(),
             codes: newIsPublic ? [] : (newCode.trim() ? [{ value: newCode.trim(), used: false }] : []),
-            coverImage: newCover || undefined
-        });
+        };
+
+        if (formattedVideos.length > 0) lessonData.videos = formattedVideos;
+        if (formattedPdfs.length > 0) lessonData.pdfFiles = formattedPdfs;
+        if (newCover) lessonData.coverImage = newCover;
+
+        addLesson(activeTab, lessonData);
 
         // Reset form
         setNewTitle('');
@@ -188,7 +191,7 @@ const AdminDashboard: React.FC = () => {
             pdfUrl: p.pdfUrl.trim()
         }));
 
-        updateLesson(editingLesson.levelId, editingLesson.lessonId, {
+        const updateData: any = {
             title: newTitle.trim(),
             videos: formattedVideos,
             videoUrl: '', // Clear legacy URL
@@ -196,8 +199,11 @@ const AdminDashboard: React.FC = () => {
             pdfFiles: formattedPdfs,
             description: newDescription.trim(),
             code: newIsPublic ? '' : newCode.trim(),
-            coverImage: newCover || undefined,
-        });
+        };
+
+        if (newCover) updateData.coverImage = newCover;
+
+        updateLesson(editingLesson.levelId, editingLesson.lessonId, updateData);
 
         // Reset state
         setEditingLesson(null);
