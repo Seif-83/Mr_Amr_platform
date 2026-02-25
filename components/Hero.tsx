@@ -11,13 +11,14 @@ const Hero: React.FC = () => {
       <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-[30rem] h-[30rem] bg-teal-100 rounded-full blur-[100px] opacity-40"></div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 relative">
-        <div className="lg:grid lg:grid-cols-2 lg:gap-12 items-center">
-          <div className="text-right lg:text-right">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          {/* Text Section (7 Columns on Large Screens) */}
+          <div className="lg:col-span-7 text-right order-1">
             <h1 className="text-5xl lg:text-7xl font-black text-gray-900 leading-tight mb-8">
               <span className="block mb-4 text-gray-800">الرياضيات اسهل مع</span>
               <span className="block science-gradient bg-clip-text text-transparent">الأستاذ عمرو محسن</span>
             </h1>
-            <p className="mt-8 text-2xl text-gray-600 leading-relaxed max-w-2xl lg:ml-0 lg:mr-auto font-medium">
+            <p className="mt-8 text-2xl text-gray-600 leading-relaxed max-w-2xl font-medium">
               نفتح لك أبواب التميز في مادة الرياضيات. شروحات مبسطة، تمارين تفاعلية، ومتابعة دقيقة لكل طالب.
             </p>
             <div className="mt-12 flex flex-wrap gap-6 justify-center lg:justify-start">
@@ -27,10 +28,12 @@ const Hero: React.FC = () => {
               </a>
             </div>
           </div>
-          <div className="mt-16 lg:mt-0 lg:col-span-5 relative">
+
+          {/* Image Section (5 Columns on Large Screens) */}
+          <div className="lg:col-span-5 relative order-2">
             <div className="relative mx-auto w-full rounded-[3rem] shadow-2xl overflow-hidden ring-12 ring-white/50 backdrop-blur-sm">
               <img
-                className="w-full object-cover aspect-video"
+                className="w-full object-cover aspect-video lg:aspect-square"
                 src={siteSettings.heroImage}
                 alt="Math Learning"
               />
