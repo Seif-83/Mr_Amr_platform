@@ -86,14 +86,11 @@ const Navbar: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <Link to="/student-login" className="bg-gradient-to-r from-sky-500 to-teal-400 text-white px-5 py-2 rounded-full font-bold text-sm hover:shadow-lg hover:shadow-sky-500/30 transition-all">
+              <Link to="/login" className="bg-gradient-to-r from-sky-500 to-teal-400 text-white px-5 py-2 rounded-full font-bold text-sm hover:shadow-lg hover:shadow-sky-500/30 transition-all">
                 تسجيل الدخول
               </Link>
             )}
-            <Link to="/admin-login" className="text-gray-400 hover:text-sky-600 font-medium transition-colors text-sm flex items-center gap-1">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-              لوحة التحكم
-            </Link>
+            {/* Removed Admin Control Panel link per request */}
           </div>
 
           <div className="md:hidden">
@@ -138,55 +135,51 @@ const Navbar: React.FC = () => {
                     <span className="text-xs text-gray-500 block mb-1">مرحباً بك</span>
                     <span className="text-sky-700 font-bold text-lg">{studentName} 🎓</span>
                   </div>
-                    <div className="mb-3 text-right">
-                      <label className="text-xs text-gray-500">المرحلة:</label>
-                      <select
-                        value={studentLevel}
-                        onChange={async e => {
-                          const newLevel = e.target.value;
-                          sessionStorage.setItem('student_level', newLevel);
-                          const sid = sessionStorage.getItem('student_id');
-                          if (sid) {
-                            try {
-                              await updateStudent(sid, { level: newLevel });
-                            } catch (err) {
-                              console.error('Failed to update student level', err);
-                            }
+                  <div className="mb-3 text-right">
+                    <label className="text-xs text-gray-500">المرحلة:</label>
+                    <select
+                      value={studentLevel}
+                      onChange={async e => {
+                        const newLevel = e.target.value;
+                        sessionStorage.setItem('student_level', newLevel);
+                        const sid = sessionStorage.getItem('student_id');
+                        if (sid) {
+                          try {
+                            await updateStudent(sid, { level: newLevel });
+                          } catch (err) {
+                            console.error('Failed to update student level', err);
                           }
-                          window.location.reload();
-                        }}
-                        className="w-full mt-2 p-2 rounded border"
-                      >
-                        {levels.map(l => <option key={l.id} value={l.id}>{l.titleAr}</option>)}
-                      </select>
-                    </div>
-                    <a
-                      href="https://ipn.eg/S/amrmohsenhassanaly/instapay/21x3Xu"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="block w-full py-2 mb-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-sm font-bold shadow-lg hover:shadow-xl transition-all text-center"
+                        }
+                        window.location.reload();
+                      }}
+                      className="w-full mt-2 p-2 rounded border"
                     >
-                      💳 وسيلة الدفع
-                    </a>
-                    <button
-                      onClick={handleStudentLogout}
-                      className="w-full py-2 bg-white text-red-500 border border-red-100 rounded-xl text-sm font-bold shadow-sm hover:bg-red-50 transition-all"
-                    >
-                      تسجيل الخروج
-                    </button>
+                      {levels.map(l => <option key={l.id} value={l.id}>{l.titleAr}</option>)}
+                    </select>
+                  </div>
+                  <a
+                    href="https://ipn.eg/S/amrmohsenhassanaly/instapay/21x3Xu"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block w-full py-2 mb-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-sm font-bold shadow-lg hover:shadow-xl transition-all text-center"
+                  >
+                    💳 وسيلة الدفع
+                  </a>
+                  <button
+                    onClick={handleStudentLogout}
+                    className="w-full py-2 bg-white text-red-500 border border-red-100 rounded-xl text-sm font-bold shadow-sm hover:bg-red-50 transition-all"
+                  >
+                    تسجيل الخروج
+                  </button>
                 </div>
               ) : (
-                <Link to="/student-login" onClick={() => setIsMenuOpen(false)} className="block text-center text-lg font-bold text-white py-3 px-4 rounded-xl bg-gradient-to-r from-sky-500 to-teal-400 shadow-lg shadow-sky-500/20 mt-4 transition-transform active:scale-95">
-                  تسجيل الدخول للطالب 👨‍🎓
+                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="block text-center text-lg font-bold text-white py-3 px-4 rounded-xl bg-gradient-to-r from-sky-500 to-teal-400 shadow-lg shadow-sky-500/20 mt-4 transition-transform active:scale-95">
+                  تسجيل الدخول 👨‍🎓
                 </Link>
               )}
 
-              <div className="border-t border-gray-100 my-4 pt-4">
-                <Link to="/admin-login" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-end gap-2 text-sm font-medium text-gray-400 hover:text-sky-600 py-2 px-4 transition-colors">
-                  لوحة التحكم ⚙️
-                </Link>
-              </div>
+              {/* Removed Admin Control Panel link per request */}
             </div>
           </div>
         </div>,

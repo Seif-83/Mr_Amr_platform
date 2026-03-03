@@ -11,6 +11,7 @@ import StudentExams from './components/StudentExams';
 import StudentExamPage from './components/StudentExamPage';
 import AdminExamResults from './components/AdminExamResults';
 import StudentLogin from './components/StudentLogin';
+import LoginSelection from './components/LoginSelection';
 import StudentManagement from './components/StudentManagement';
 import { useContentStore } from './useContentStore';
 import { Lesson } from './types';
@@ -200,10 +201,10 @@ const HomePage: React.FC = () => {
               سجل دخولك الآن للوصول إلى محتوى مرحلتك الدراسية ومتابعة دروسك أولاً بأول.
             </p>
             <Link
-              to="/student-login"
+              to="/login"
               className="inline-block bg-white text-sky-600 px-10 py-4 rounded-2xl font-bold text-xl hover:bg-sky-50 transition-all shadow-lg hover:shadow-xl transform active:scale-95"
             >
-              تسجيل الدخول للطالب
+              تسجيل الدخول
             </Link>
           </div>
         </section>
@@ -634,6 +635,7 @@ const App: React.FC = () => {
               <Route path="/exams" element={<StudentExams />} />
               <Route path="/exam/:examId" element={<StudentExamPage />} />
               <Route path="/student-login" element={<StudentLogin />} />
+              <Route path="/login" element={<LoginSelection />} />
               <Route path="/admin/students" element={<StudentManagement />} />
             </Routes>
           </ErrorBoundary>
