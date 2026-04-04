@@ -45,8 +45,14 @@ const StudentLogin: React.FC = () => {
             } else {
                 setStep(2);
             }
-        } catch (err) {
-            setError('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى');
+        } catch (err: any) {
+            if (err.message?.includes('Permission denied')) {
+                setError('عذراً، لا توجد صلاحيات للوصول لقاعدة البيانات. يرجى مراجعة المعلم.');
+            } else if (err.message?.includes('timeout')) {
+                setError('حدث خطأ في الاتصال (Timeout)، يرجى المحاولة مرة أخرى');
+            } else {
+                setError('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى');
+            }
         } finally {
             setIsSubmitting(false);
         }

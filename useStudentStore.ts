@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ref, onValue, set, push, remove, get, update } from 'firebase/database';
+import { ref, onValue, set, push, remove, get, update, query, orderByChild, equalTo } from 'firebase/database';
 import { db } from './firebase';
 
 export interface Student {
@@ -13,14 +13,16 @@ export interface Student {
 
 const DB_PATH = 'students';
 
-export function useStudentStore() {
+export function useStudentStore(options: { autoListen?: boolean } = {}) {
+    const { autoListen = false } = options;
     const [students, setStudents] = useState<Student[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(autoListen);
 
-    // Listen for real-time updates
+    // Listen for real-time updates only if autoListen is true
     useEffect(() => {
-        const dbRef = ref(db, DB_PATH);
+        if (!autoListen) return;
 
+        const dbRef = ref(db, DB_PATH);
         const unsubscribe = onValue(dbRef, (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.val();
@@ -46,10 +48,11 @@ export function useStudentStore() {
     const loginByPhone = useCallback(async (phone: string): Promise<Student | null> => {
         console.log('useStudentStore: loginByPhone called for:', phone);
         const dbRef = ref(db, DB_PATH);
+        const phoneQuery = query(dbRef, orderByChild('phone'), equalTo(phone));
 
         try {
             // Add a 5s timeout for the fetch
-            const fetchPromise = get(dbRef);
+            const fetchPromise = get(phoneQuery);
             const timeoutPromise = new Promise((_, reject) =>
                 setTimeout(() => reject(new Error('Firebase connection timeout')), 5000)
             );
@@ -59,17 +62,16 @@ export function useStudentStore() {
 
             if (snapshot.exists()) {
                 const data = snapshot.val();
-                const existingEntry = Object.entries(data).find(
-                    ([_, student]: [string, any]) => student.phone === phone
-                );
-                if (existingEntry) {
-                    const [key, student] = existingEntry;
+                // Even with equalTo, it returns an object { key: value }
+                const entry = Object.entries(data)[0];
+                if (entry) {
+                    const [key, student] = entry;
                     console.log('useStudentStore: Student found, updating lastSeen');
                     await set(ref(db, `${DB_PATH}/${key}/lastSeen`), new Date().toISOString());
                     return { ...(student as any), id: key };
                 }
-                console.log('useStudentStore: Student not found in database');
             }
+            console.log('useStudentStore: Student not found in database');
         } catch (err) {
             console.error('useStudentStore: Login error:', err);
             throw err;

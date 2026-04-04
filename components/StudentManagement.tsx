@@ -5,7 +5,7 @@ import { useStudentStore, Student } from '../useStudentStore';
 
 const StudentManagement: React.FC = () => {
     const navigate = useNavigate();
-    const { students, isLoading, removeStudent } = useStudentStore();
+    const { students, isLoading, removeStudent } = useStudentStore({ autoListen: true });
     const [searchQuery, setSearchQuery] = useState('');
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const [successMsg, setSuccessMsg] = useState('');
